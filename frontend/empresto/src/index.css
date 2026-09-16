@@ -4,4 +4,22 @@
   --font-inter: "Inter", sans-serif;
   --font-playfair: "Playfair Display", serif;
   --font-jakarta: "Plus Jakarta Sans", sans-serif;
+
+  /* Colors to be used across the project */
+  --color-background-lighter-green: #1A594C;
+  --color-main-background-green: #0E3D2D;
+  --color-secondary-light-green: #01DF82;
+  --color-secondary-light-gray: #87B1A6
+
+}
+
+.welcome-inferior-card {
+  @apply font-jakarta bg-secondary-light-green/10 m-2 p-2 pl-5 rounded-lg text-xs 
+}
+.welcome-inferior-number {
+  @apply w-5 h-5 rounded-full bg-secondary-light-green/20 flex items-center justify-center text-secondary-light-green font-bold font-jakarta mt-5 mb-2;
+}
+
+.welcome-inferior-text {
+  @apply pb-5 w-1/2
 }

@@ -5,9 +5,9 @@ import Welcome from './login/Welcome'
 function App() {
 
   return (
-    <div className='App'>
-      <LoginForm />
+    <div className='App min-h-screen flex w-full font-inter'>
       <Welcome />
+      <LoginForm />
     </div>
   );
 }

@@ -5,7 +5,7 @@ interface LoginFormData {
 
 function LoginForm() {
     return (
-        <div>
+        <div className="w-1/2 bg-white flex items-center justify-center">
             <h2>Entre com sua conta</h2>
             <h3>Por favor, insira seus dados para entrar na sua conta.</h3>
 
