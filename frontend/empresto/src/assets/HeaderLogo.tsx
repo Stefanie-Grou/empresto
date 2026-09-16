@@ -2,7 +2,7 @@ import { Icon } from '@iconify/react';
 
 export function HeaderLogo() {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-col items-center justify-center gap-2">
       <Icon 
         icon="lucide:book-open-text" 
         className="w-8 h-8 text-emerald-400" 

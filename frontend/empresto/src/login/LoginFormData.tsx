@@ -7,7 +7,7 @@ interface LoginFormData {
 
 function LoginForm() {
     return (
-        <div className="w-100vm bg-white-background p-45">
+        <div className="bg-white-background p-45">
 
             <div>
                 <HeaderLogo />
@@ -26,14 +26,14 @@ function LoginForm() {
                 <input className= "form-input" placeholder="Digite sua senha" />
             </form>
 
-            <div className='login-options text-center font-jakarta text-medium-gray text-sm'>
-                <label className="p-5" >
-                    <input type='checkbox' /> Mostrar senha
+            <div className='login-options'>
+                <label>
+                    <input type='checkbox' className="rounded"/> Mostrar senha
                 </label>
                 <p className="text-main-background-green"><a href="#">Esqueceu a senha?</a></p>
             </div>
 
-            <button className = "font-jakarta p-5 bg-main-background-green rounded text-white-background" type='submit'>Entrar</button>
+            <button className = "buttons w-full " type='submit'>Entrar</button>
 
             <p className="text-medium-gray text-sm text-center">Não tem conta? <a className = "font-semibold" href='#'>Clique aqui</a> para cadastrar</p>
         </div>

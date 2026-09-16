@@ -35,3 +35,11 @@
 .form-label {
   @apply pb-3 pt-3 
 }
+
+.login-options {
+  @apply w-full flex flex-row items-center justify-between font-jakarta text-medium-gray text-sm flex flex-col items-center
+}
+
+.buttons {
+  @apply font-jakarta p-5 mt-5 mb-5 bg-main-background-green rounded text-white-background
+}

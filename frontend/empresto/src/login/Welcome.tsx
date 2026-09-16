@@ -1,6 +1,6 @@
 function Welcome() {
     return (
-        <div className="w-1/2 min-h-screen bg-linear-to-b from-70% from-main-background-green to-background-lighter-green rounded-lg text-white flex flex-col justify-end gap-12 p-12">
+        <div className="min-h-screen bg-linear-to-b from-70% from-main-background-green to-background-lighter-green rounded-lg text-white flex flex-col justify-end gap-12 p-12">
 
             <div className="grid grid-cols-2 gap-20 items-center text-secondary-light-gray">
                 <h1 className="font-jakarta text-4xl leading-15 font-semibold">

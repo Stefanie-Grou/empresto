@@ -5,7 +5,7 @@ import Welcome from './login/Welcome'
 function App() {
 
   return (
-    <div className='App flex font-inter'>
+    <div className='App grid grid-cols-2 w-full min-h-screen font-inter'>
       <Welcome />
       <LoginForm />
     </div>
