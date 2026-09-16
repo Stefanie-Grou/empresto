@@ -9,7 +9,11 @@
   --color-background-lighter-green: #1A594C;
   --color-main-background-green: #0E3D2D;
   --color-secondary-light-green: #01DF82;
-  --color-secondary-light-gray: #87B1A6
+  --color-secondary-light-gray: #87B1A6;
+
+  --color-full-black: #030F0F;
+  --color-medium-gray:#606060;
+  --color-white-background: #FAFAFA
 
 }
 
@@ -22,4 +26,12 @@
 
 .welcome-inferior-text {
   @apply pb-5 w-1/2
+}
+
+.form-input {
+  @apply bg-white p-3
+}
+
+.form-label {
+  @apply pb-3 pt-3 
 }
