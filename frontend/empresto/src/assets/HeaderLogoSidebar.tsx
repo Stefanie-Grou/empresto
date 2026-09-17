@@ -2,7 +2,7 @@ import { Icon } from '@iconify/react';
 
 export function HeaderLogoSidebar() {
   return (
-    <div className="center-horizontally gap-2">
+    <div className="center-horizontally gap-2 pl-5 pt-5">
       <Icon
         icon="lucide:book-open-text"
         className="w-8 h-8 text-emerald-400"
