@@ -1,4 +1,5 @@
 import { useState, type SubmitEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import HeaderLogo from "../assets/HeaderLogo";
 
 interface LoginFormData {
@@ -7,6 +8,8 @@ interface LoginFormData {
 }
 
 export function LoginForm() {
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState<LoginFormData>({
         usuario: '',
         senha: '',
@@ -23,7 +26,7 @@ export function LoginForm() {
         }));
     };
 
-    /*
+    /* TODO: RETORNAR AQUI E REMOVER O "MOCK" DE AUTH
     const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
@@ -46,6 +49,8 @@ export function LoginForm() {
             setErrorMessage(error.message || 'Erro ao conectar com o servidor.');
         } finally {
             setIsLoading(false);
+
+            navigate('/dashboard');
         }
 
     };
@@ -59,6 +64,7 @@ export function LoginForm() {
 
         console.log('Login simulado com sucesso:', formData);
         setIsLoading(false);
+        navigate('/dashboard');
     };
 
 
