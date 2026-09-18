@@ -7,7 +7,7 @@ export function HeaderLogoSidebar() {
         icon="lucide:book-open-text"
         className="w-8 h-8 text-emerald-400"
       />
-      <div className='text-white-background'>
+      <div className='text-white-background pl-5'>
         <p className="font-playfair font-bold text-2xl">Emprestô</p>
         <p className='font-kumbh text-sx'>Gestão de Biblioteca</p>
       </div>

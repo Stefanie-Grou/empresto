@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 import LoginForm from './login/LoginFormData';
 import Welcome from './login/Welcome';
-import { MainLayout } from './pages/MainLayout';
+import { MainLayout } from './MainElements/MainLayout';
 import DashboardPage from './pages/DashboardPage';
 
 function LoginPage() {
