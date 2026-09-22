@@ -2,13 +2,10 @@ import { useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import DropdownOptions from '../assets/Dropwdown';
 
-const PAGE_HEADER_DATA: Record<
-  string,
-  { label: string; subtitle: string; icon: string }
-> = {
+const PAGE_HEADER_DATA: Record<string, { label: string; subtitle: string; icon: string }> = {
   '/dashboard': {
     label: 'Visão Geral',
-    subtitle: 'Acompanhe o resumo do seu acervo.',
+    subtitle: 'Acompanhe o resumo do seu acervo',
     icon: 'lucide:chart-column',
   },
   '/acervo': {
@@ -43,14 +40,14 @@ export default function HeaderElement() {
   };
 
   return (
-    <header className="w-full bg-white-background px-8 py-4 flex justify-between items-center font-inter">
+    <header className="w-full bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center font-inter">
       <div className="flex items-center gap-4">
         <div className="text-main-background-green flex items-center justify-center">
           <Icon icon={currentPage.icon} className="w-8 h-8" />
         </div>
 
         <div className="flex flex-col">
-          <h1 className="text-lg font-bold text-medium-gray leading-snug">
+          <h1 className="text-lg font-bold text-gray-900 leading-snug">
             {currentPage.label}
           </h1>
           <p className="text-xs text-gray-500 leading-snug">
@@ -59,9 +56,8 @@ export default function HeaderElement() {
         </div>
       </div>
 
-      <div className="flex items-center">
-        <DropdownOptions />
-      </div>
+      {/* Direita: Componente do Usuário com Dropdown */}
+      <DropdownOptions userName="Ana Carolina" userRole="Bibliotecária" />
     </header>
   );
 }
