@@ -1,17 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import './App.css'
-import LoginForm from './login/LoginFormData'
-import Welcome from './login/Welcome'
-
-
-function DashboardPage() {
-  return (
-    <div className="p-8 font-inter">
-      <h1 className="text-3xl font-bold">Painel do Emprestô</h1>
-      <p>Bem-vindo ao sistema de controle do acervo!</p>
-    </div>
-  );
-}
+import './App.css';
+import LoginForm from './login/LoginFormData';
+import Welcome from './login/Welcome';
+import { MainLayout } from './MainElements/MainLayout';
+import DashboardPage from './pages/DashboardPage';
 
 function LoginPage() {
   return (
@@ -25,12 +17,16 @@ function LoginPage() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Rota inicial (Login) */}
+<Routes>
         <Route path="/" element={<LoginPage />} />
 
-        {/* Rota do Dashboard */}
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route element={<MainLayout />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/acervo" element={<div>Página do Acervo</div>} />
+          <Route path="/emprestimos" element={<div>Página de Empréstimos</div>} />
+          <Route path="/reservas" element={<div>Página de Reservas</div>} />
+          <Route path="/relatorios" element={<div>Página de Relatórios</div>} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
