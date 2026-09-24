@@ -14,7 +14,11 @@
 
   --color-full-black: #030F0F;
   --color-medium-gray:#606060;
-  --color-white-background: #FAFAFA
+  --color-white-background: #FAFAFA;
+
+  --color-soft-blue: #0191DF;
+  --color-soft-yellow: #E7A53A;
+  --color-soft-red: #B12121;
 
 }
 
