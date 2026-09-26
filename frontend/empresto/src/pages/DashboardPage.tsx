@@ -1,20 +1,13 @@
 import StatCard from "../MainElements/Card";
+import DashboardHeader from "./DashboardHeader";
 
 export default function DashboardPage() {
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex flex-col gap-6 w-full p-8 bg-gray-50">
             <div>
-                <div>
-                    <h1>Bom dia estático</h1>
-                    <p>Data estático</p>
-                </div>
-                <button
-                    type="submit"
-                    className="buttons">
-                    <p>Novo Empréstimo</p>
-                </button>
+                <DashboardHeader />
             </div>
-            <div className="flex flex-wrap items-center gap-6 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full bg-gray-50 p-8">
                 <StatCard
                     title="Itens no acervo"
                     subtitle="Total de itens cadastrados"
