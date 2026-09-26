@@ -7,9 +7,13 @@ import DashboardPage from './pages/DashboardPage';
 
 function LoginPage() {
   return (
-    <div className="App grid grid-cols-2 w-full min-h-screen font-inter">
-      <Welcome />
-      <LoginForm />
+    <div className="App grid grid-cols-1 lg:grid-cols-2 w-full min-h-screen font-inter bg-white-background">
+      <div className="hidden lg:block h-full">
+        <Welcome />
+      </div>
+      <div className="w-full">
+        <LoginForm />
+      </div>
     </div>
   );
 }
@@ -17,7 +21,7 @@ function LoginPage() {
 export default function App() {
   return (
     <BrowserRouter>
-<Routes>
+      <Routes>
         <Route path="/" element={<LoginPage />} />
 
         <Route element={<MainLayout />}>
