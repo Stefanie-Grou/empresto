@@ -36,6 +36,12 @@ const PAGE_HEADER_DATA: Record<
 export default function HeaderElement() {
   const location = useLocation();
 
+  const storedUser = typeof window !== 'undefined' ? localStorage.getItem('empresto_usuario') : null;
+  const user = storedUser ? JSON.parse(storedUser) : null;
+
+  const userName = user?.nome || user?.nomeUsuario || 'Administrador';
+  const userRole = user?.perfil === 'Bibliotecário' ? 'Bibliotecário' : 'Admin';
+
   const currentPage = PAGE_HEADER_DATA[location.pathname] || {
     label: 'Acervo',
     subtitle: 'Consulta de todos os livros da estante.',
@@ -60,7 +66,7 @@ export default function HeaderElement() {
       </div>
 
       <div className="flex items-center">
-        <DropdownOptions />
+        <DropdownOptions userName={userName} userRole={userRole} />
       </div>
     </header>
   );

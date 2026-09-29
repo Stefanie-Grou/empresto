@@ -8,14 +8,17 @@ interface DropdownOptionsProps {
 }
 
 export default function DropdownOptions({
-  userName = 'Usuário',
-  userRole = 'Role',
+  userName = 'Administrador',
+  userRole = 'Admin',
 }: DropdownOptionsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
     setIsOpen(false);
+    localStorage.removeItem('empresto_token');
+    localStorage.removeItem('empresto_usuario');
+    sessionStorage.removeItem('login_success');
     navigate('/');
   };
 
@@ -26,7 +29,6 @@ export default function DropdownOptions({
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center cursor-pointer p-1.5 rounded-xl hover:bg-gray-100/60 transition-colors"
       >
-        {/* Avatar */}
         <div className="bg-main-background-green rounded-full flex items-center justify-center w-10 h-10 shrink-0">
           <Icon icon="lucide:user" className="w-6 h-6 text-emerald-300" />
         </div>
@@ -36,7 +38,6 @@ export default function DropdownOptions({
           <p className="text-xs opacity-80 leading-tight">{userRole}</p>
         </div>
 
-        {/* Ícone de Chevron com rotação ao abrir */}
         <Icon
           icon="lucide:chevron-down"
           className={`w-5 h-5 text-main-background-green ml-3 transition-transform duration-200 ${
@@ -45,7 +46,6 @@ export default function DropdownOptions({
         />
       </button>
 
-      {/* Menu Dropdown Suspenso */}
       {isOpen && (
         <>
           <div
