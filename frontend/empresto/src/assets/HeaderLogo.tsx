@@ -7,7 +7,7 @@ export function HeaderLogo() {
         icon="lucide:book-open-text" 
         className="w-8 h-8 text-emerald-400" 
       />
-      <p className="font-playfair text-main-background-green font-bold text-2xl pl-5 mb-10">Emprestô</p>
+      <p className="font-playfair text-main-background-green font-bold text-2xl pl-5">Emprestô</p>
     </div>
   );
 }
