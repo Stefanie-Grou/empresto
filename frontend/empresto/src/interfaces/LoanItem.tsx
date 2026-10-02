@@ -4,8 +4,8 @@ export interface LoanItem {
   bookAuthor: string;
   coverUrl?: string;
   userName: string;
-  userAvatar?: string;
   classGroup?: string;
   userType: 'Aluno' | 'Professor' | string;
   dueDate: string;
+  itemType: string;
 }

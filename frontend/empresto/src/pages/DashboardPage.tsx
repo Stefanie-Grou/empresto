@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import StatCard from "../MainElements/Card";
+import StatCard from "../components/Card";
 import DashboardHeader from "./DashboardHeader";
-import RecentLoans from "../MainElements/RecentLoans";
-import QuickActions from "../MainElements/QuickActions";
+import RecentLoans from '../components/RecentLoans';
+import QuickActions from '../components/QuickActions';
 import Toast from '../components/Toast';
 
 export default function DashboardPage() {
