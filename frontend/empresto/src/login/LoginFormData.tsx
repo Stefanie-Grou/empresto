@@ -186,7 +186,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="buttons w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          className="buttons bg-main-background-green w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {isLoading ? 'Entrando...' : 'Entrar'}
         </button>

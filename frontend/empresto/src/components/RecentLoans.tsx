@@ -1,5 +1,5 @@
 import { MOCK_LOANS } from "../mocks/mock_loans";
-import type { LoanItem } from "./LoanItem";
+import type { LoanItem } from "../interfaces/LoanItem";
 
 interface RecentLoansProps {
     loans?: LoanItem[];

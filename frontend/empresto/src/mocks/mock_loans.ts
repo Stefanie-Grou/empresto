@@ -1,4 +1,4 @@
-import type { LoanItem } from "../MainElements/LoanItem";
+import type { LoanItem } from "../interfaces/LoanItem";
 
 export const MOCK_LOANS: LoanItem[] = [
   {
@@ -9,6 +9,8 @@ export const MOCK_LOANS: LoanItem[] = [
     classGroup: '7B',
     userType: 'Aluno',
     dueDate: '10/09/2026',
+    itemType: 'Livro'
+
   },
   {
     id: '2',
@@ -18,6 +20,7 @@ export const MOCK_LOANS: LoanItem[] = [
     classGroup: '-',
     userType: 'Professor',
     dueDate: '11/09/2026',
+    itemType: 'Quadrinho'
   },
   {
     id: '3',
@@ -27,5 +30,35 @@ export const MOCK_LOANS: LoanItem[] = [
     classGroup: '7B',
     userType: 'Aluno',
     dueDate: '15/09/2026',
+    itemType: 'Livro'
+  },
+  {
+    id: '4',
+    bookTitle: 'A morte de Ivan Ilitch ',
+    bookAuthor: 'Liev Tolstói',
+    userName: 'Mariano Gomes',
+    classGroup: '9B',
+    userType: 'Aluno',
+    dueDate: '15/09/2026',
+    itemType: 'Livro'
+  },
+  {
+    id: '5',
+    bookTitle: 'Coraline',
+    bookAuthor: 'Neil Gaiman',
+    userName: 'Analice Rodrigues',
+    classGroup: '8B',
+    userType: 'Aluno',
+    dueDate: '15/09/2026',
+    itemType: 'Livro'
+  },{
+    id: '6',
+    bookTitle: 'Biologia de Campbell',
+    bookAuthor: 'Andrew Reece',
+    userName: 'Elisângela Roberta',
+    classGroup: '-',
+    userType: 'Aluno',
+    dueDate: '15/09/2026',
+    itemType: 'Livro'
   },
 ];
