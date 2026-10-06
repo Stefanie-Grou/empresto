@@ -2,8 +2,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 import LoginForm from './login/LoginFormData';
 import Welcome from './login/Welcome';
-import { MainLayout } from './MainElements/MainLayout';
+import { MainLayout } from './components/MainLayout';
 import DashboardPage from './pages/DashboardPage';
+import CollectionPage from './pages/CollectionPage';
 
 function LoginPage() {
   return (
@@ -22,7 +23,7 @@ export default function App() {
 
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/acervo" element={<div>Página do Acervo</div>} />
+          <Route path="/acervo" element={<CollectionPage  />} />
           <Route path="/emprestimos" element={<div>Página de Empréstimos</div>} />
           <Route path="/reservas" element={<div>Página de Reservas</div>} />
           <Route path="/relatorios" element={<div>Página de Relatórios</div>} />

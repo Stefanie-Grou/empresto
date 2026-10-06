@@ -28,7 +28,7 @@ export default function DashboardHeader() {
   return (
     <div className="w-full flex justify-between items-center font-inter">
       <div className="flex flex-col">
-        <h2 className="text-3xl font-playfair font-bold text-gray-900 leading-tight">
+        <h2 className="text-3xl font-playfair font-bold leading-tight">
           {greetingByPeriodOfDay},
         </h2>
 
@@ -39,7 +39,7 @@ export default function DashboardHeader() {
 
       <button
         type="button"
-        className="buttons flex items-center gap-2 cursor-pointer"
+        className="buttons bg-main-background-green flex items-center gap-2 cursor-pointer"
       >
         <Icon icon="lucide:plus" className="w-4 h-4" />
         <span>Novo empréstimo</span>
