@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import ItemsActionBar from '../components/ItemsActionBar';
+import ItemsActionBarHeader from '../components/ItemsActionBarHeader';
 import ItemsTable from '../components/ItemsTable';
 import { MOCK_LOANS } from '../mocks/mock_loans';
 import type { InventoryItem } from '../interfaces/InventoryItem';
@@ -9,7 +9,11 @@ export default function CollectionPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  const filteredItems: InventoryItem[] = useMemo(() => {
+  const handleOpenModal = () => {
+    console.log('Abrir modal de novo empréstimo');
+  };
+
+const filteredItems: InventoryItem[] = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
 
     return MOCK_LOANS
@@ -23,8 +27,8 @@ export default function CollectionPage() {
       })
       .map((loan) => ({
         id: loan.id,
-        bookTitle: loan.bookTitle,
-        bookAuthor: loan.bookAuthor,
+        bookTitle: loan.bookTitle,  
+        bookAuthor: loan.bookAuthor, 
         coverUrl: loan.coverUrl,
         itemType: loan.itemType || 'Livro',
         quantity: 1,
@@ -48,11 +52,14 @@ export default function CollectionPage() {
 
   return (
     <div className="flex flex-col gap-6 p-8">
-      <ItemsActionBar
+      <ItemsActionBarHeader
+        title="Gestão de Acervo"
+        subtitle="Cadastre, edite e consulte todos os livros, revistas e materiais disponíveis na estante."
+        placeholder="Buscar item"
+        newItemLabel="Novo item"
         searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        onFilterClick={() => console.log('Abrir modal de filtro')}
-        onNewItemClick={() => console.log('Abrir modal de cadastro')}
+        onSearchChange={handleSearchChange} 
+        onNewItemClick={handleOpenModal}    
       />
 
       <ItemsTable

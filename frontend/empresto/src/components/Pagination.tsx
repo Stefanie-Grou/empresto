@@ -6,9 +6,8 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-// Algoritmo para calcular quais números de página exibir com reticências
 function getPaginationRange(currentPage: number, totalPages: number) {
-  const delta = 1; // Quantidade de páginas vizinhas exibidas ao lado da atual
+  const delta = 1; 
   const range: (number | string)[] = [];
 
   for (let i = 1; i <= totalPages; i++) {
@@ -26,7 +25,6 @@ function getPaginationRange(currentPage: number, totalPages: number) {
     }
   }
 
-  // Remove reticências duplicadas sequenciais
   return range.filter((item, index, array) => item !== '...' || array[index - 1] !== '...');
 }
 
@@ -52,7 +50,6 @@ export default function Pagination({
         <Icon icon="lucide:chevron-left" className="w-4 h-4" />
       </button>
 
-      {/* Lista de Páginas */}
       {pages.map((page, index) => {
         if (page === '...') {
           return (
@@ -81,7 +78,6 @@ export default function Pagination({
         );
       })}
 
-      {/* Botão Próximo */}
       <button
         type="button"
         disabled={currentPage === totalPages}
