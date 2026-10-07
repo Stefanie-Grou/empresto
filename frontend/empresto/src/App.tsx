@@ -5,6 +5,7 @@ import Welcome from './login/Welcome';
 import { MainLayout } from './components/MainLayout';
 import DashboardPage from './pages/DashboardPage';
 import CollectionPage from './pages/CollectionPage';
+import BookLendingPage from './pages/BookLendingPage';
 
 function LoginPage() {
   return (
@@ -24,7 +25,7 @@ export default function App() {
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/acervo" element={<CollectionPage  />} />
-          <Route path="/emprestimos" element={<div>Página de Empréstimos</div>} />
+          <Route path="/emprestimos" element={<BookLendingPage />} />
           <Route path="/reservas" element={<div>Página de Reservas</div>} />
           <Route path="/relatorios" element={<div>Página de Relatórios</div>} />
         </Route>

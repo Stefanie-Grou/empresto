@@ -13,7 +13,7 @@ interface ItemsTableProps {
 }
 
 export default function ItemsTable({
-    title = 'Empréstimos recentes',
+    title = 'Itens novos no acervo',
     items,
     currentPage,
     totalPages,
@@ -25,7 +25,7 @@ export default function ItemsTable({
         <div className="bg-white-background border border-100-gray rounded-2xl p-6 shadow-xs w-full flex flex-col justify-between h-full">
             <div>
                 {title && (
-                    <h2 className="text-2xl font-jakarta font-bold main-background-green mb-6">
+                    <h2 className="text-2xl font-playfair main-background-green mb-6">
                         {title}
                     </h2>
                 )}
