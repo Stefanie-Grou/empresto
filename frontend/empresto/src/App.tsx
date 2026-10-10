@@ -1,30 +1,21 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
-import LoginForm from './login/LoginFormData';
-import Welcome from './login/Welcome';
+import AuthPage from './login/AuthPage';
 import { MainLayout } from './components/MainLayout';
 import DashboardPage from './pages/DashboardPage';
 import CollectionPage from './pages/CollectionPage';
 import BookLendingPage from './pages/BookLendingPage';
 
-function LoginPage() {
-  return (
-    <div className="App grid grid-cols-2 w-full min-h-screen font-inter">
-      <Welcome />
-      <LoginForm />
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <BrowserRouter>
-<Routes>
-        <Route path="/" element={<LoginPage />} />
+      <Routes>
+        <Route path="/" element={<AuthPage initialMode="login" />} />
+        <Route path="/cadastro" element={<AuthPage initialMode="register" />} />
 
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/acervo" element={<CollectionPage  />} />
+          <Route path="/acervo" element={<CollectionPage />} />
           <Route path="/emprestimos" element={<BookLendingPage />} />
           <Route path="/reservas" element={<div>Página de Reservas</div>} />
           <Route path="/relatorios" element={<div>Página de Relatórios</div>} />

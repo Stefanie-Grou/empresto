@@ -1,11 +1,13 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderLogo from '../assets/HeaderLogo';
 import Toast, { type ToastType } from '../components/Toast';
 
-interface LoginFormData {
-  usuario: string;
+interface RegisterFormData {
+  nomeUsuario: string;
+  email: string;
   senha: string;
+  confirmarSenha: string;
 }
 
 interface ToastState {
@@ -15,30 +17,25 @@ interface ToastState {
   message: string;
 }
 
-interface LoginFormProps {
-  onSwitchToRegister?: () => void;
+interface RegisterFormProps {
+  onSwitchToLogin?: () => void;
 }
 
-export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
+export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState<LoginFormData>({
-    usuario: '',
+  const [formData, setFormData] = useState<RegisterFormData>({
+    nomeUsuario: '',
+    email: '',
     senha: '',
+    confirmarSenha: '',
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
 
-  useEffect(() => {
-    const savedEmail = localStorage.getItem('empresto_saved_email');
-    if (savedEmail) {
-      setFormData((prev) => ({ ...prev, usuario: savedEmail }));
-    }
-  }, []);
-
-  const handleChange = (field: keyof LoginFormData, value: string) => {
+  const handleChange = (field: keyof RegisterFormData, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -46,31 +43,33 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   };
 
   const validateForm = (): boolean => {
-    const email = formData.usuario.trim();
-    const senha = formData.senha.trim();
+    const nomeUsuario = formData.nomeUsuario.trim();
+    const email = formData.email.trim();
+    const senha = formData.senha;
+    const confirmarSenha = formData.confirmarSenha;
 
-    if (!email && !senha) {
+    if (!nomeUsuario || !email || !senha || !confirmarSenha) {
       setToast({
         id: Date.now(),
         type: 'error',
         title: 'Campos obrigatórios',
-        message: 'Por favor, preencha o e-mail e a senha para entrar.',
+        message: 'Por favor, preencha todos os campos para realizar o cadastro.',
       });
       return false;
     }
 
-    if (!email) {
+    if (nomeUsuario.length < 3) {
       setToast({
         id: Date.now(),
-        type: 'error',
-        title: 'E-mail obrigatório',
-        message: 'Por favor, informe seu endereço de e-mail.',
+        type: 'warning',
+        title: 'Nome de usuário curto',
+        message: 'O nome de usuário deve conter no mínimo 3 caracteres.',
       });
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email) && email !== 'admin') {
+    if (!emailRegex.test(email)) {
       setToast({
         id: Date.now(),
         type: 'warning',
@@ -80,12 +79,42 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
       return false;
     }
 
-    if (!senha) {
+    if (senha.length < 6) {
       setToast({
         id: Date.now(),
         type: 'error',
-        title: 'Senha obrigatória',
-        message: 'Por favor, informe sua senha de acesso.',
+        title: 'Senha muito curta',
+        message: 'A senha deve conter no mínimo 6 caracteres.',
+      });
+      return false;
+    }
+
+    if (!/\d/.test(senha)) {
+      setToast({
+        id: Date.now(),
+        type: 'error',
+        title: 'Senha sem número',
+        message: 'A senha deve conter ao menos um número.',
+      });
+      return false;
+    }
+
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(senha)) {
+      setToast({
+        id: Date.now(),
+        type: 'error',
+        title: 'Senha sem caractere especial',
+        message: 'A senha deve conter ao menos um caractere especial (ex: @, #, $, !).',
+      });
+      return false;
+    }
+
+    if (senha !== confirmarSenha) {
+      setToast({
+        id: Date.now(),
+        type: 'error',
+        title: 'Senhas não coincidem',
+        message: 'A confirmação de senha deve ser idêntica à senha digitada.',
       });
       return false;
     }
@@ -103,14 +132,16 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/v1/auth/login', {
+      const response = await fetch('http://localhost:8080/api/v1/auth/cadastro', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: formData.usuario.trim(),
-          senha: formData.senha.trim(),
+          nome: formData.nomeUsuario.trim(),
+          nomeUsuario: formData.nomeUsuario.trim(),
+          email: formData.email.trim(),
+          senha: formData.senha,
         }),
       });
 
@@ -120,14 +151,13 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
         setToast({
           id: Date.now(),
           type: 'error',
-          title: 'Falha no login',
-          message: data.erro || 'E-mail ou senha incorretos.',
+          title: 'Erro no cadastro',
+          message: data.erro || 'Não foi possível concluir o cadastro.',
         });
         setIsLoading(false);
         return;
       }
 
-      localStorage.setItem('empresto_saved_email', formData.usuario.trim());
       localStorage.setItem('empresto_token', data.token);
       localStorage.setItem('empresto_usuario', JSON.stringify(data.usuario));
       sessionStorage.setItem('login_success', 'true');
@@ -150,42 +180,74 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
       <HeaderLogo />
 
       <div className="font-inter text-center mt-4">
-        <h1 className="text-2xl font-semibold">Entre com sua conta</h1>
+        <h1 className="text-2xl font-semibold">Crie sua conta</h1>
         <p className="text-medium-gray text-sm">
-          Por favor, insira seus dados para entrar na sua conta.
+          Preencha seus dados para começar a usar o Emprestô.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="text-medium-gray flex flex-col gap-4 mt-6">
         <div className="flex flex-col">
-          <label className="form-label" htmlFor="login-email">
-            E-mail
+          <label className="form-label" htmlFor="register-username">
+            Nome de Usuário
           </label>
           <input
-            id="login-email"
+            id="register-username"
             name="username"
-            type="email"
+            type="text"
             autoComplete="username"
             className="form-input"
-            placeholder="Digite seu e-mail"
-            value={formData.usuario}
-            onChange={(e) => handleChange('usuario', e.target.value)}
+            placeholder="Digite seu nome de usuário"
+            value={formData.nomeUsuario}
+            onChange={(e) => handleChange('nomeUsuario', e.target.value)}
           />
         </div>
 
         <div className="flex flex-col">
-          <label className="form-label" htmlFor="login-password">
+          <label className="form-label" htmlFor="register-email">
+            E-mail
+          </label>
+          <input
+            id="register-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            className="form-input"
+            placeholder="Digite seu e-mail"
+            value={formData.email}
+            onChange={(e) => handleChange('email', e.target.value)}
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="form-label" htmlFor="register-password">
             Senha
           </label>
           <input
-            id="login-password"
-            name="password"
+            id="register-password"
+            name="new-password"
             type={showPassword ? 'text' : 'password'}
-            autoComplete="current-password"
+            autoComplete="new-password"
             className="form-input"
-            placeholder="Digite sua senha"
+            placeholder="Mínimo 6 caracteres, número e caractere especial"
             value={formData.senha}
             onChange={(e) => handleChange('senha', e.target.value)}
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="form-label" htmlFor="register-confirm-password">
+            Confirmar Senha
+          </label>
+          <input
+            id="register-confirm-password"
+            name="confirm-password"
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="new-password"
+            className="form-input"
+            placeholder="Repita a senha informada"
+            value={formData.confirmarSenha}
+            onChange={(e) => handleChange('confirmarSenha', e.target.value)}
           />
         </div>
 
@@ -197,12 +259,8 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
               onChange={(e) => setShowPassword(e.target.checked)}
               className="rounded"
             />
-            <span>Mostrar senha</span>
+            <span>Mostrar senhas</span>
           </label>
-
-          <p className="text-main-background-green">
-            <a href="#">Esqueceu a senha?</a>
-          </p>
         </div>
 
         <button
@@ -210,20 +268,20 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           disabled={isLoading}
           className="buttons bg-main-background-green w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
         >
-          {isLoading ? 'Entrando...' : 'Entrar'}
+          {isLoading ? 'Cadastrando...' : 'Cadastrar'}
         </button>
       </form>
 
       <p className="text-medium-gray text-sm text-center mt-6">
-        Não tem conta?{' '}
+        Já tem uma conta?{' '}
         <button
           type="button"
-          onClick={onSwitchToRegister}
+          onClick={onSwitchToLogin}
           className="font-semibold text-main-background-green hover:underline cursor-pointer bg-transparent border-0 p-0"
         >
           Clique aqui
         </button>{' '}
-        para cadastrar
+        para entrar
       </p>
 
       {toast && (
@@ -239,4 +297,4 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   );
 }
 
-export default LoginForm;
+export default RegisterForm;
