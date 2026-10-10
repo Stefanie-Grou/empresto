@@ -32,9 +32,9 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const [toast, setToast] = useState<ToastState | null>(null);
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem('empresto_saved_email');
-    if (savedEmail) {
-      setFormData((prev) => ({ ...prev, usuario: savedEmail }));
+    const savedUser = localStorage.getItem('empresto_saved_user');
+    if (savedUser) {
+      setFormData((prev) => ({ ...prev, usuario: savedUser }));
     }
   }, []);
 
@@ -46,36 +46,25 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   };
 
   const validateForm = (): boolean => {
-    const email = formData.usuario.trim();
+    const usuario = formData.usuario.trim();
     const senha = formData.senha.trim();
 
-    if (!email && !senha) {
+    if (!usuario && !senha) {
       setToast({
         id: Date.now(),
         type: 'error',
         title: 'Campos obrigatórios',
-        message: 'Por favor, preencha o e-mail e a senha para entrar.',
+        message: 'Por favor, preencha o usuário e a senha para entrar.',
       });
       return false;
     }
 
-    if (!email) {
+    if (!usuario) {
       setToast({
         id: Date.now(),
         type: 'error',
-        title: 'E-mail obrigatório',
-        message: 'Por favor, informe seu endereço de e-mail.',
-      });
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email) && email !== 'admin') {
-      setToast({
-        id: Date.now(),
-        type: 'warning',
-        title: 'E-mail incompleto',
-        message: 'O e-mail deve conter o formato completo (exemplo: usuario@dominio.com).',
+        title: 'Usuário obrigatório',
+        message: 'Por favor, informe seu usuário ou e-mail de acesso.',
       });
       return false;
     }
@@ -109,7 +98,9 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          login: formData.usuario.trim(),
           email: formData.usuario.trim(),
+          usuario: formData.usuario.trim(),
           senha: formData.senha.trim(),
         }),
       });
@@ -121,13 +112,13 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           id: Date.now(),
           type: 'error',
           title: 'Falha no login',
-          message: data.erro || 'E-mail ou senha incorretos.',
+          message: data.erro || 'Usuário ou senha incorretos.',
         });
         setIsLoading(false);
         return;
       }
 
-      localStorage.setItem('empresto_saved_email', formData.usuario.trim());
+      localStorage.setItem('empresto_saved_user', formData.usuario.trim());
       localStorage.setItem('empresto_token', data.token);
       localStorage.setItem('empresto_usuario', JSON.stringify(data.usuario));
       sessionStorage.setItem('login_success', 'true');
@@ -145,40 +136,42 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
     }
   };
 
+  const isFormEmpty = !formData.usuario.trim() || !formData.senha.trim();
+
   return (
-    <div className="bg-white-background p-10 flex flex-col justify-center">
+    <div className="w-full flex flex-col justify-center">
       <HeaderLogo />
 
-      <div className="font-inter text-center mt-4">
-        <h1 className="text-2xl font-semibold">Entre com sua conta</h1>
-        <p className="text-medium-gray text-sm">
+      <div className="font-inter text-center mt-6 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Entre com sua Conta</h1>
+        <p className="text-gray-500 text-xs sm:text-sm mt-1.5">
           Por favor, insira seus dados para entrar na sua conta.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} noValidate className="text-medium-gray flex flex-col gap-4 mt-6">
+      <form onSubmit={handleSubmit} noValidate className="text-gray-700 flex flex-col gap-4">
         <div className="flex flex-col">
-          <label className="form-label" htmlFor="login-email">
-            E-mail
+          <label className="form-label" htmlFor="login-usuario">
+            Usuário
           </label>
           <input
-            id="login-email"
+            id="login-usuario"
             name="username"
-            type="email"
+            type="text"
             autoComplete="username"
             className="form-input"
-            placeholder="Digite seu e-mail"
+            placeholder="Digite seu usuário"
             value={formData.usuario}
             onChange={(e) => handleChange('usuario', e.target.value)}
           />
         </div>
 
         <div className="flex flex-col">
-          <label className="form-label" htmlFor="login-password">
+          <label className="form-label" htmlFor="login-senha">
             Senha
           </label>
           <input
-            id="login-password"
+            id="login-senha"
             name="password"
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
@@ -189,37 +182,41 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           />
         </div>
 
-        <div className="login-options">
-          <label className="flex items-center gap-2 cursor-pointer">
+        <div className="w-full flex items-center justify-between text-xs sm:text-sm pt-1">
+          <label className="flex items-center gap-2 cursor-pointer select-none text-gray-600">
             <input
               type="checkbox"
               checked={showPassword}
               onChange={(e) => setShowPassword(e.target.checked)}
-              className="rounded"
+              className="w-4 h-4 rounded-full border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
             />
             <span>Mostrar senha</span>
           </label>
 
-          <p className="text-main-background-green">
-            <a href="#">Esqueceu a senha?</a>
-          </p>
+          <a href="#" className="text-emerald-500 hover:text-emerald-600 font-medium">
+            Esqueceu a senha?
+          </a>
         </div>
 
         <button
           type="submit"
-          disabled={isLoading}
-          className="buttons bg-main-background-green w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
+          disabled={isLoading || isFormEmpty}
+          className={`w-full py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center mt-2 ${
+            isFormEmpty
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-main-background-green text-white hover:bg-[#0A2E22] cursor-pointer shadow-sm'
+          }`}
         >
           {isLoading ? 'Entrando...' : 'Entrar'}
         </button>
       </form>
 
-      <p className="text-medium-gray text-sm text-center mt-6">
+      <p className="text-gray-500 text-xs sm:text-sm text-center mt-6">
         Não tem conta?{' '}
         <button
           type="button"
           onClick={onSwitchToRegister}
-          className="font-semibold text-main-background-green hover:underline cursor-pointer bg-transparent border-0 p-0"
+          className="font-medium text-gray-700 underline hover:text-black cursor-pointer bg-transparent border-0 p-0"
         >
           Clique aqui
         </button>{' '}

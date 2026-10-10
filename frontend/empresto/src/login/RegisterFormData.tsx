@@ -158,6 +158,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         return;
       }
 
+      localStorage.setItem('empresto_saved_user', formData.nomeUsuario.trim());
       localStorage.setItem('empresto_token', data.token);
       localStorage.setItem('empresto_usuario', JSON.stringify(data.usuario));
       sessionStorage.setItem('login_success', 'true');
@@ -175,18 +176,24 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     }
   };
 
+  const isFormEmpty =
+    !formData.nomeUsuario.trim() ||
+    !formData.email.trim() ||
+    !formData.senha.trim() ||
+    !formData.confirmarSenha.trim();
+
   return (
-    <div className="bg-white-background p-10 flex flex-col justify-center">
+    <div className="w-full flex flex-col justify-center">
       <HeaderLogo />
 
-      <div className="font-inter text-center mt-4">
-        <h1 className="text-2xl font-semibold">Crie sua conta</h1>
-        <p className="text-medium-gray text-sm">
-          Preencha seus dados para começar a usar o Emprestô.
+      <div className="font-inter text-center mt-5 mb-5">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Crie sua Conta</h1>
+        <p className="text-gray-500 text-xs sm:text-sm mt-1.5">
+          Por favor, insira seus dados para criar sua conta.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} noValidate className="text-medium-gray flex flex-col gap-4 mt-6">
+      <form onSubmit={handleSubmit} noValidate className="text-gray-700 flex flex-col gap-3.5">
         <div className="flex flex-col">
           <label className="form-label" htmlFor="register-username">
             Nome de Usuário
@@ -197,7 +204,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             type="text"
             autoComplete="username"
             className="form-input"
-            placeholder="Digite seu nome de usuário"
+            placeholder="Digite seu usuário"
             value={formData.nomeUsuario}
             onChange={(e) => handleChange('nomeUsuario', e.target.value)}
           />
@@ -229,7 +236,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             type={showPassword ? 'text' : 'password'}
             autoComplete="new-password"
             className="form-input"
-            placeholder="Mínimo 6 caracteres, número e caractere especial"
+            placeholder="Mínimo 6 caracteres, número e símbolo"
             value={formData.senha}
             onChange={(e) => handleChange('senha', e.target.value)}
           />
@@ -245,19 +252,19 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             type={showPassword ? 'text' : 'password'}
             autoComplete="new-password"
             className="form-input"
-            placeholder="Repita a senha informada"
+            placeholder="Confirme sua senha"
             value={formData.confirmarSenha}
             onChange={(e) => handleChange('confirmarSenha', e.target.value)}
           />
         </div>
 
-        <div className="login-options">
-          <label className="flex items-center gap-2 cursor-pointer">
+        <div className="w-full flex items-center justify-between text-xs sm:text-sm pt-0.5">
+          <label className="flex items-center gap-2 cursor-pointer select-none text-gray-600">
             <input
               type="checkbox"
               checked={showPassword}
               onChange={(e) => setShowPassword(e.target.checked)}
-              className="rounded"
+              className="w-4 h-4 rounded-full border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
             />
             <span>Mostrar senhas</span>
           </label>
@@ -265,19 +272,23 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
 
         <button
           type="submit"
-          disabled={isLoading}
-          className="buttons bg-main-background-green w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
+          disabled={isLoading || isFormEmpty}
+          className={`w-full py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center mt-2 ${
+            isFormEmpty
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-main-background-green text-white hover:bg-[#0A2E22] cursor-pointer shadow-sm'
+          }`}
         >
           {isLoading ? 'Cadastrando...' : 'Cadastrar'}
         </button>
       </form>
 
-      <p className="text-medium-gray text-sm text-center mt-6">
+      <p className="text-gray-500 text-xs sm:text-sm text-center mt-5">
         Já tem uma conta?{' '}
         <button
           type="button"
           onClick={onSwitchToLogin}
-          className="font-semibold text-main-background-green hover:underline cursor-pointer bg-transparent border-0 p-0"
+          className="font-medium text-gray-700 underline hover:text-black cursor-pointer bg-transparent border-0 p-0"
         >
           Clique aqui
         </button>{' '}
