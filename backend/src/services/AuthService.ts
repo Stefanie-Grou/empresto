@@ -260,13 +260,18 @@ export class AuthService {
           const resend = new Resend(resendApiKey.trim());
           const fromEmail = process.env.RESEND_FROM_EMAIL || 'Emprestô <onboarding@resend.dev>';
 
-          await resend.emails.send({
+          const envio = await resend.emails.send({
             from: fromEmail,
             to: [usuario.email],
             subject: 'Recuperação de Senha - Emprestô',
             html: emailHtml,
           });
-          emailDisparado = true;
+
+          if (!envio.error) {
+            emailDisparado = true;
+          } else {
+            console.error('Falha no envio via Resend:', envio.error.message);
+          }
         } catch (resendError: any) {
           console.error('Falha no envio via Resend:', resendError.message);
         }
