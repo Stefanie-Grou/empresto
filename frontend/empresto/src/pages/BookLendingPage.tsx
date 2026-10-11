@@ -21,7 +21,7 @@ export default function BookLendingPage() {
     searchPredicate: (item, term) =>
       item.bookTitle.toLowerCase().includes(term) ||
       item.bookAuthor.toLowerCase().includes(term) ||
-      item.studentName.toLowerCase().includes(term) ||
+      item.studentName.toLowerCase().includes(term) || // 3. Busca também pelo aluno
       String(item.id).toLowerCase().includes(term),
   });
 
