@@ -1,7 +1,7 @@
 import HeaderLogo from '../assets/HeaderLogo';
 
 interface WelcomeProps {
-  variant?: 'mobile' | 'desktop' | 'auto';
+  variant?: 'mobile' | 'desktop';
 }
 
 export function Welcome({ variant = 'desktop' }: WelcomeProps) {
