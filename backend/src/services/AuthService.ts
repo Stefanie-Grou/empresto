@@ -1,6 +1,7 @@
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { pool } from '../config/database.js';
 
 interface LoginDTO {
@@ -252,10 +253,35 @@ export class AuthService {
       const resetLink = `${frontendUrl}/redefinir-senha?token=${token}`;
       const emailHtml = this.gerarEmailRecuperacaoSenha(usuario.nome, resetLink);
 
+      const smtpUser = process.env.SMTP_USER;
+      const smtpPass = process.env.SMTP_PASS;
       const resendApiKey = process.env.RESEND_API_KEY;
       let emailDisparado = false;
 
-      if (resendApiKey && resendApiKey.trim() !== '') {
+      if (smtpUser && smtpPass) {
+        try {
+          const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: smtpUser,
+              pass: smtpPass,
+            },
+          });
+
+          await transporter.sendMail({
+            from: `"Emprestô" <${smtpUser}>`,
+            to: usuario.email,
+            subject: 'Recuperação de Senha - Emprestô',
+            html: emailHtml,
+          });
+
+          emailDisparado = true;
+        } catch (smtpError: any) {
+          console.error('Falha no envio via Gmail SMTP:', smtpError.message);
+        }
+      }
+
+      if (!emailDisparado && resendApiKey && resendApiKey.trim() !== '') {
         try {
           const resend = new Resend(resendApiKey.trim());
           const fromEmail = process.env.RESEND_FROM_EMAIL || 'Emprestô <onboarding@resend.dev>';
