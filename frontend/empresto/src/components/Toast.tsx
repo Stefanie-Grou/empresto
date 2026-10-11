@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from '@iconify/react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -70,13 +71,13 @@ export function Toast({ type, title, message, onClose, duration = 5000 }: ToastP
 
   const config = toastConfig[type];
 
-  return (
+  return createPortal(
     <div
       role="alert"
-      className={`fixed bottom-6 right-6 z-50 flex items-start gap-3.5 p-4 pb-5 min-w-[320px] max-w-sm bg-gradient-to-r ${config.bgGradient} bg-white rounded-2xl border shadow-xl shadow-gray-200/60 overflow-hidden transform transition-all duration-300 ease-out ${
+      className={`fixed bottom-6 left-6 z-50 flex items-start gap-3.5 p-4 pb-5 min-w-[320px] max-w-sm bg-gradient-to-r ${config.bgGradient} bg-white rounded-2xl border shadow-xl shadow-gray-200/60 overflow-hidden transform transition-all duration-300 ease-out ${
         isVisible
           ? 'translate-x-0 opacity-100 scale-100'
-          : 'translate-x-8 opacity-0 scale-95 pointer-events-none'
+          : '-translate-x-8 opacity-0 scale-95 pointer-events-none'
       }`}
     >
       <div
@@ -112,7 +113,8 @@ export function Toast({ type, title, message, onClose, duration = 5000 }: ToastP
           }}
         />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
