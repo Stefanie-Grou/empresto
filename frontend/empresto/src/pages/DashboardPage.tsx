@@ -11,12 +11,21 @@ export default function DashboardPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('Login realizado com sucesso! Bem-vindo(a) ao Emprestô.');
 
   useEffect(() => {
-    const hasLoginSuccessState = location.state?.loginSuccess;
-    const hasLoginSuccessStorage = sessionStorage.getItem('login_success');
+    const isRegisterState = location.state?.registerSuccess;
+    const isRegisterStorage = sessionStorage.getItem('register_success');
+    const isLoginState = location.state?.loginSuccess;
+    const isLoginStorage = sessionStorage.getItem('login_success');
 
-    if (hasLoginSuccessState || hasLoginSuccessStorage) {
+    if (isRegisterState || isRegisterStorage) {
+      setToastMessage('Cadastro realizado com sucesso! Bem-vindo(a) ao Emprestô.');
+      setShowToast(true);
+      sessionStorage.removeItem('register_success');
+      navigate(location.pathname, { replace: true, state: {} });
+    } else if (isLoginState || isLoginStorage) {
+      setToastMessage('Login realizado com sucesso! Bem-vindo(a) ao Emprestô.');
       setShowToast(true);
       sessionStorage.removeItem('login_success');
       navigate(location.pathname, { replace: true, state: {} });
@@ -25,10 +34,8 @@ export default function DashboardPage() {
 
   return (
     <div className="h-screen w-full overflow-y-hidden flex flex-col gap-6 p-8 bg-main-background-gray relative">
-      {/* 1. Cabeçalho */}
       <DashboardHeader />
 
-      {/* 2. Grid de Cards de Estatísticas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full shrink-0">
         <StatCard
           title="Itens no acervo"
@@ -67,7 +74,6 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* 3. Seção Inferior: Tabela + Ações */}
       <div className="grid lg:grid-cols-3 gap-6 flex-1 min-h-0">
         <div className="lg:col-span-2 min-h-0 flex flex-col">
           <RecentLoans />
@@ -77,12 +83,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 4. Feedback de Toast */}
       {showToast && (
         <Toast
           type="success"
           title="Sucesso"
-          message="Login realizado com sucesso! Bem-vindo(a) ao Emprestô."
+          message={toastMessage}
           onClose={() => setShowToast(false)}
         />
       )}

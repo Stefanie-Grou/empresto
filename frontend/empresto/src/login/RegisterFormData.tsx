@@ -162,9 +162,9 @@ export function RegisterForm({ onSwitchToLogin, showHeaderLogo = true }: Registe
       localStorage.setItem('empresto_saved_user', formData.nomeUsuario.trim());
       localStorage.setItem('empresto_token', data.token);
       localStorage.setItem('empresto_usuario', JSON.stringify(data.usuario));
-      sessionStorage.setItem('login_success', 'true');
+      sessionStorage.setItem('register_success', 'true');
 
-      navigate('/dashboard', { state: { loginSuccess: true } });
+      navigate('/dashboard', { state: { registerSuccess: true } });
     } catch {
       setToast({
         id: Date.now(),
