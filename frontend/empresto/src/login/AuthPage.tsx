@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import Welcome from './Welcome';
 import LoginForm from './LoginFormData';
 import RegisterForm from './RegisterFormData';
@@ -10,27 +10,35 @@ interface AuthPageProps {
 
 export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   const location = useLocation();
-  const navigate = useNavigate();
   const [mode, setMode] = useState<'login' | 'register'>(
     location.pathname === '/cadastro' ? 'register' : initialMode
   );
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [fadeState, setFadeState] = useState<'in' | 'out'>('in');
 
   useEffect(() => {
-    if (location.pathname === '/cadastro' && mode !== 'register') {
-      setMode('register');
-    } else if (location.pathname === '/' && mode !== 'login') {
-      setMode('login');
-    }
-  }, [location.pathname, mode]);
+    const handlePopState = () => {
+      const isCadastro = window.location.pathname === '/cadastro';
+      setMode(isCadastro ? 'register' : 'login');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const switchMode = (newMode: 'login' | 'register') => {
-    setIsTransitioning(true);
+    if (fadeState === 'out') return;
+
+    setFadeState('out');
+
     setTimeout(() => {
       setMode(newMode);
-      setIsTransitioning(false);
-      navigate(newMode === 'register' ? '/cadastro' : '/', { replace: true });
-    }, 180);
+      window.history.replaceState(null, '', newMode === 'register' ? '/cadastro' : '/');
+
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          setFadeState('in');
+        }, 35);
+      });
+    }, 150);
   };
 
   return (
@@ -42,8 +50,10 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
 
         <div className="w-full bg-white rounded-t-[32px] px-6 pt-8 pb-10 shadow-2xl mt-auto">
           <div
-            className={`w-full max-w-[410px] mx-auto transition-all duration-200 ease-in-out ${
-              isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+            className={`w-full max-w-[410px] mx-auto transition-all duration-200 ease-out ${
+              fadeState === 'out'
+                ? 'opacity-0 translate-y-1.5'
+                : 'opacity-100 translate-y-0'
             }`}
           >
             {mode === 'login' ? (
@@ -68,8 +78,10 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
 
         <div className="w-1/2 min-h-[calc(100vh-2.5rem)] flex items-center justify-center p-6 lg:p-12">
           <div
-            className={`w-full max-w-[410px] transition-all duration-200 ease-in-out ${
-              isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+            className={`w-full max-w-[410px] transition-all duration-200 ease-out ${
+              fadeState === 'out'
+                ? 'opacity-0 translate-y-1.5'
+                : 'opacity-100 translate-y-0'
             }`}
           >
             {mode === 'login' ? (
