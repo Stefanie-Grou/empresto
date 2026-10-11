@@ -37,6 +37,41 @@ export class AuthController {
       res.status(status).json({ erro: error.message || 'Erro ao realizar cadastro.' });
     }
   }
+
+  public async esqueceuSenha(req: Request, res: Response): Promise<void> {
+    try {
+      const email = req.body.email || req.body.login || req.body.usuario;
+
+      if (!email) {
+        res.status(400).json({ erro: 'Por favor, informe seu e-mail ou nome de usuário.' });
+        return;
+      }
+
+      const resultado = await authService.esqueceuSenha(email);
+      res.status(200).json(resultado);
+    } catch (error: any) {
+      const status = error.statusCode || 500;
+      res.status(status).json({ erro: error.message || 'Erro ao processar recuperação de senha.' });
+    }
+  }
+
+  public async redefinirSenha(req: Request, res: Response): Promise<void> {
+    try {
+      const { token, novaSenha, senha } = req.body;
+      const finalSenha = novaSenha || senha;
+
+      if (!token || !finalSenha) {
+        res.status(400).json({ erro: 'Token e nova senha são obrigatórios.' });
+        return;
+      }
+
+      const resultado = await authService.redefinirSenha(token, finalSenha);
+      res.status(200).json(resultado);
+    } catch (error: any) {
+      const status = error.statusCode || 500;
+      res.status(status).json({ erro: error.message || 'Erro ao redefinir senha.' });
+    }
+  }
 }
 
 export const authController = new AuthController();

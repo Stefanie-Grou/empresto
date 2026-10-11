@@ -3,35 +3,56 @@ import { useLocation } from 'react-router-dom';
 import Welcome from './Welcome';
 import LoginForm from './LoginFormData';
 import RegisterForm from './RegisterFormData';
+import ForgotPasswordForm from './ForgotPasswordForm';
+import ResetPasswordForm from './ResetPasswordForm';
+
+type AuthMode = 'login' | 'register' | 'forgot' | 'reset';
 
 interface AuthPageProps {
-  initialMode?: 'login' | 'register';
+  initialMode?: AuthMode;
 }
 
 export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   const location = useLocation();
-  const [mode, setMode] = useState<'login' | 'register'>(
-    location.pathname === '/cadastro' ? 'register' : initialMode
-  );
+
+  const getInitialMode = (): AuthMode => {
+    if (location.pathname === '/cadastro') return 'register';
+    if (location.pathname === '/esqueceu-senha') return 'forgot';
+    if (location.pathname === '/redefinir-senha') return 'reset';
+    return initialMode;
+  };
+
+  const [mode, setMode] = useState<AuthMode>(getInitialMode);
   const [fadeState, setFadeState] = useState<'in' | 'out'>('in');
 
   useEffect(() => {
     const handlePopState = () => {
-      const isCadastro = window.location.pathname === '/cadastro';
-      setMode(isCadastro ? 'register' : 'login');
+      const pathname = window.location.pathname;
+      if (pathname === '/cadastro') setMode('register');
+      else if (pathname === '/esqueceu-senha') setMode('forgot');
+      else if (pathname === '/redefinir-senha') setMode('reset');
+      else setMode('login');
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const switchMode = (newMode: 'login' | 'register') => {
+  const switchMode = (newMode: AuthMode) => {
     if (fadeState === 'out') return;
 
     setFadeState('out');
 
     setTimeout(() => {
       setMode(newMode);
-      window.history.replaceState(null, '', newMode === 'register' ? '/cadastro' : '/');
+      const path =
+        newMode === 'register'
+          ? '/cadastro'
+          : newMode === 'forgot'
+          ? '/esqueceu-senha'
+          : newMode === 'reset'
+          ? '/redefinir-senha'
+          : '/';
+      window.history.replaceState(null, '', path);
 
       requestAnimationFrame(() => {
         setTimeout(() => {
@@ -39,6 +60,41 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
         }, 35);
       });
     }, 150);
+  };
+
+  const renderCurrentForm = (showHeaderLogo: boolean) => {
+    switch (mode) {
+      case 'register':
+        return (
+          <RegisterForm
+            onSwitchToLogin={() => switchMode('login')}
+            showHeaderLogo={showHeaderLogo}
+          />
+        );
+      case 'forgot':
+        return (
+          <ForgotPasswordForm
+            onSwitchToLogin={() => switchMode('login')}
+            showHeaderLogo={showHeaderLogo}
+          />
+        );
+      case 'reset':
+        return (
+          <ResetPasswordForm
+            onSwitchToLogin={() => switchMode('login')}
+            showHeaderLogo={showHeaderLogo}
+          />
+        );
+      case 'login':
+      default:
+        return (
+          <LoginForm
+            onSwitchToRegister={() => switchMode('register')}
+            onForgotPassword={() => switchMode('forgot')}
+            showHeaderLogo={showHeaderLogo}
+          />
+        );
+    }
   };
 
   return (
@@ -56,17 +112,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                 : 'opacity-100 translate-y-0'
             }`}
           >
-            {mode === 'login' ? (
-              <LoginForm
-                onSwitchToRegister={() => switchMode('register')}
-                showHeaderLogo={false}
-              />
-            ) : (
-              <RegisterForm
-                onSwitchToLogin={() => switchMode('login')}
-                showHeaderLogo={false}
-              />
-            )}
+            {renderCurrentForm(false)}
           </div>
         </div>
       </div>
@@ -84,17 +130,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                 : 'opacity-100 translate-y-0'
             }`}
           >
-            {mode === 'login' ? (
-              <LoginForm
-                onSwitchToRegister={() => switchMode('register')}
-                showHeaderLogo={true}
-              />
-            ) : (
-              <RegisterForm
-                onSwitchToLogin={() => switchMode('login')}
-                showHeaderLogo={true}
-              />
-            )}
+            {renderCurrentForm(true)}
           </div>
         </div>
       </div>

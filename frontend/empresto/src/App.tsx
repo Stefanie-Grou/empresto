@@ -12,6 +12,8 @@ export default function App() {
       <Routes>
         <Route path="/" element={<AuthPage initialMode="login" />} />
         <Route path="/cadastro" element={<AuthPage initialMode="register" />} />
+        <Route path="/esqueceu-senha" element={<AuthPage initialMode="forgot" />} />
+        <Route path="/redefinir-senha" element={<AuthPage initialMode="reset" />} />
 
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />

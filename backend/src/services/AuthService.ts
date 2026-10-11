@@ -1,5 +1,6 @@
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { Resend } from 'resend';
 import { pool } from '../config/database.js';
 
 interface LoginDTO {
@@ -58,23 +59,16 @@ export class AuthService {
   public async login({ login, senha }: LoginDTO): Promise<AuthResponse> {
     const client = await pool.connect();
     try {
-      const termo = login.trim().toLowerCase();
+      const cleanLogin = login.trim().toLowerCase();
+
       const res = await client.query(
         `
-        SELECT 
-          u.id_usuario, 
-          u.email, 
-          u.senha, 
-          u.ativo, 
-          COALESCE(u.nome, p.nome, 'Administrador') as nome, 
-          COALESCE(u.nome_usuario, 'admin') as nome_usuario,
-          COALESCE(u.perfil, p.tipo_pessoa, 'Admin') as perfil
-        FROM usuario u
-        LEFT JOIN pessoa p ON u.id_pessoa = p.id_pessoa
-        WHERE LOWER(u.email) = $1 OR LOWER(u.nome_usuario) = $1
+        SELECT id_usuario, nome, nome_usuario, email, senha, perfil, ativo 
+        FROM usuario 
+        WHERE LOWER(email) = $1 OR LOWER(nome_usuario) = $1
         LIMIT 1;
       `,
-        [termo]
+        [cleanLogin]
       );
 
       const usuario = res.rows[0];
@@ -213,6 +207,189 @@ export class AuthService {
     } finally {
       client.release();
     }
+  }
+
+  public async esqueceuSenha(identificador: string): Promise<{ mensagem: string; emailEnviado?: string; linkSimulado?: string }> {
+    const client = await pool.connect();
+    try {
+      const cleanIdentificador = identificador.trim().toLowerCase();
+
+      const res = await client.query(
+        `
+        SELECT id_usuario, nome, nome_usuario, email, ativo
+        FROM usuario
+        WHERE LOWER(email) = $1 OR LOWER(nome_usuario) = $1
+        LIMIT 1;
+      `,
+        [cleanIdentificador]
+      );
+
+      const usuario = res.rows[0];
+
+      if (!usuario) {
+        const error: any = new Error('E-mail ou nome de usuário não encontrado.');
+        error.statusCode = 404;
+        throw error;
+      }
+
+      if (!usuario.ativo) {
+        const error: any = new Error('Usuário inativo. Entre em contato com o suporte.');
+        error.statusCode = 403;
+        throw error;
+      }
+
+      const token = jwt.sign(
+        {
+          id: usuario.id_usuario,
+          email: usuario.email,
+          type: 'reset_password',
+        },
+        this.jwtSecret,
+        { expiresIn: '1h' }
+      );
+
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const resetLink = `${frontendUrl}/redefinir-senha?token=${token}`;
+      const emailHtml = this.gerarEmailRecuperacaoSenha(usuario.nome, resetLink);
+
+      const resendApiKey = process.env.RESEND_API_KEY;
+      let emailDisparado = false;
+
+      if (resendApiKey && resendApiKey.trim() !== '') {
+        try {
+          const resend = new Resend(resendApiKey.trim());
+          const fromEmail = process.env.RESEND_FROM_EMAIL || 'Emprestô <onboarding@resend.dev>';
+
+          await resend.emails.send({
+            from: fromEmail,
+            to: [usuario.email],
+            subject: 'Recuperação de Senha - Emprestô',
+            html: emailHtml,
+          });
+          emailDisparado = true;
+        } catch (resendError: any) {
+          console.error('Falha no envio via Resend:', resendError.message);
+        }
+      }
+
+      return {
+        mensagem: 'Instruções para redefinição de senha enviadas com sucesso!',
+        emailEnviado: usuario.email,
+        linkSimulado: !emailDisparado ? resetLink : undefined,
+      };
+    } finally {
+      client.release();
+    }
+  }
+
+  public async redefinirSenha(token: string, novaSenha: string): Promise<{ mensagem: string }> {
+    const client = await pool.connect();
+    try {
+      let payload: any;
+      try {
+        payload = jwt.verify(token, this.jwtSecret);
+      } catch {
+        const error: any = new Error('Link de recuperação inválido ou expirado. Solicite um novo link.');
+        error.statusCode = 400;
+        throw error;
+      }
+
+      if (payload.type !== 'reset_password') {
+        const error: any = new Error('Tipo de token inválido para redefinição de senha.');
+        error.statusCode = 400;
+        throw error;
+      }
+
+      this.validatePasswordStrength(novaSenha);
+
+      const senhaHash = await bcryptjs.hash(novaSenha, 10);
+
+      await client.query(
+        `
+        UPDATE usuario
+        SET senha = $1
+        WHERE id_usuario = $2;
+      `,
+        [senhaHash, payload.id]
+      );
+
+      return {
+        mensagem: 'Senha redefinida com sucesso! Você já pode fazer login com sua nova senha.',
+      };
+    } finally {
+      client.release();
+    }
+  }
+
+  private gerarEmailRecuperacaoSenha(nome: string, link: string): string {
+    return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperação de Senha - Emprestô</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F4F6F5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1F2937;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #F4F6F5; padding: 40px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width: 560px; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); border: 1px solid #E5E7EB;">
+          <tr>
+            <td style="background: linear-gradient(180deg, #0E3D2D 0%, #1A594C 100%); padding: 36px 32px; text-align: center;">
+              <div style="display: inline-block; width: 48px; height: 48px; border-radius: 12px; background-color: rgba(1, 223, 130, 0.15); margin-bottom: 12px; line-height: 48px; text-align: center;">
+                <span style="font-size: 26px;">📖</span>
+              </div>
+              <h1 style="margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px;">
+                Emprestô
+              </h1>
+              <p style="margin: 6px 0 0; font-size: 13px; color: #87B1A6;">
+                Organização e Gestão da Sala de Leitura
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 36px 32px 28px;">
+              <h2 style="margin: 0 0 16px; font-size: 20px; font-weight: 700; color: #0E3D2D;">
+                Recuperação de Senha
+              </h2>
+              <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #4B5563;">
+                Olá, <strong>${nome}</strong>!
+              </p>
+              <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.6; color: #4B5563;">
+                Recebemos uma solicitação para redefinir a senha da sua conta no <strong>Emprestô</strong>. Clique no botão seguro abaixo para escolher uma nova senha de acesso:
+              </p>
+              <table role="presentation" cellspacing="0" cellpadding="0" style="margin: 32px 0; width: 100%;">
+                <tr>
+                  <td align="center">
+                    <a href="${link}" target="_blank" style="background-color: #0E3D2D; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-size: 15px; font-weight: 600; display: inline-block; box-shadow: 0 2px 8px rgba(14, 61, 45, 0.25);">
+                      Redefinir Minha Senha
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <div style="background-color: #F9FAFB; border-left: 4px solid #01DF82; border-radius: 8px; padding: 14px 16px; margin: 24px 0;">
+                <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #6B7280;">
+                  ⏱️ <strong>Segurança:</strong> Este link é válido por <strong>1 hora</strong>. Após esse período, será necessário solicitar um novo link.
+                </p>
+              </div>
+              <p style="margin: 24px 0 0; font-size: 13px; line-height: 1.6; color: #9CA3AF;">
+                Se você não solicitou a redefinição de senha, fique tranquilo: sua conta permanece segura e nenhuma alteração foi realizada.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 32px; background-color: #FAFAFA; border-top: 1px solid #E5E7EB; text-align: center;">
+              <p style="margin: 0; font-size: 12px; color: #9CA3AF;">
+                Emprestô &copy; 2026 &bull; Sistema de Gestão de Acervo e Empréstimos
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
   }
 }
 

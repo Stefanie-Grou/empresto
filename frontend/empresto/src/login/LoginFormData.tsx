@@ -17,10 +17,11 @@ interface ToastState {
 
 interface LoginFormProps {
   onSwitchToRegister?: () => void;
+  onForgotPassword?: () => void;
   showHeaderLogo?: boolean;
 }
 
-export function LoginForm({ onSwitchToRegister, showHeaderLogo = true }: LoginFormProps) {
+export function LoginForm({ onSwitchToRegister, onForgotPassword, showHeaderLogo = true }: LoginFormProps) {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<LoginFormData>({
@@ -194,9 +195,13 @@ export function LoginForm({ onSwitchToRegister, showHeaderLogo = true }: LoginFo
             <span>Mostrar senha</span>
           </label>
 
-          <a href="#" className="text-emerald-500 hover:text-emerald-600 font-medium">
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            className="text-emerald-500 hover:text-emerald-600 font-medium bg-transparent border-0 p-0 cursor-pointer"
+          >
             Esqueceu a senha?
-          </a>
+          </button>
         </div>
 
         <button

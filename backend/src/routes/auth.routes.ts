@@ -6,5 +6,7 @@ const router = Router();
 router.post('/login', (req, res) => authController.login(req, res));
 router.post('/cadastro', (req, res) => authController.cadastrar(req, res));
 router.post('/register', (req, res) => authController.cadastrar(req, res));
+router.post('/esqueceu-senha', (req, res) => authController.esqueceuSenha(req, res));
+router.post('/redefinir-senha', (req, res) => authController.redefinirSenha(req, res));
 
 export default router;
