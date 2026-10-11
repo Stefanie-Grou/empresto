@@ -251,7 +251,7 @@ export class AuthService {
 
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       const resetLink = `${frontendUrl}/redefinir-senha?token=${token}`;
-      const emailHtml = this.gerarEmailRecuperacaoSenha(usuario.nome, resetLink);
+      const emailHtml = this.gerarEmailRecuperacaoSenha(usuario.nome_usuario || usuario.nome, resetLink);
 
       const smtpUser = process.env.SMTP_USER;
       const smtpPass = process.env.SMTP_PASS;
