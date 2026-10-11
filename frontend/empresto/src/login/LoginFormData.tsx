@@ -140,11 +140,11 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
 
   return (
     <div className="w-full flex flex-col justify-center">
-      <div className="hidden lg:block">
+      <div className="hidden sm:block">
         <HeaderLogo />
       </div>
 
-      <div className="font-inter text-center mt-2 lg:mt-6 mb-6">
+      <div className="font-inter text-center mt-2 sm:mt-6 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Entre com sua Conta</h1>
         <p className="text-gray-500 text-xs sm:text-sm mt-1.5">
           Por favor, insira seus dados para entrar na sua conta.

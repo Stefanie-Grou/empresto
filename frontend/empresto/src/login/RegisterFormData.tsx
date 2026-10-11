@@ -184,11 +184,11 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
 
   return (
     <div className="w-full flex flex-col justify-center">
-      <div className="hidden lg:block">
+      <div className="hidden sm:block">
         <HeaderLogo />
       </div>
 
-      <div className="font-inter text-center mt-2 lg:mt-5 mb-5">
+      <div className="font-inter text-center mt-2 sm:mt-5 mb-5">
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Crie sua Conta</h1>
         <p className="text-gray-500 text-xs sm:text-sm mt-1.5">
           Por favor, insira seus dados para criar sua conta.
