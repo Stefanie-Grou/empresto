@@ -39,7 +39,7 @@ export default function DashboardHeader() {
 
       <button
         type="button"
-        className="buttons bg-main-background-green flex items-center gap-2 cursor-pointer"
+        className="buttons bg-main-background-green text-white flex items-center gap-2 cursor-pointer"
       >
         <Icon icon="lucide:plus" className="w-4 h-4" />
         <span>Novo empréstimo</span>
