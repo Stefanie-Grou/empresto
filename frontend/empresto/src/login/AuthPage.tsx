@@ -43,7 +43,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
 
   return (
     <div className="min-h-screen w-full font-inter">
-      <div className="lg:hidden min-h-screen w-full bg-gradient-to-b from-[#092B20] via-[#0D382A] to-[#124B38] flex flex-col justify-between">
+      <div className="lg:hidden min-h-screen w-full bg-linear-to-b from-70% from-main-background-green to-background-lighter-green flex flex-col justify-between">
         <div className="w-full pt-8 pb-4 px-4">
           <Welcome variant="mobile" />
         </div>
