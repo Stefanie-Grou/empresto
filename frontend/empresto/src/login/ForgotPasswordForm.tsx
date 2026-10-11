@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import HeaderLogo from '../assets/HeaderLogo';
 import Toast, { type ToastType } from '../components/Toast';
 
@@ -12,13 +12,24 @@ interface ToastState {
 interface ForgotPasswordFormProps {
   onSwitchToLogin?: () => void;
   showHeaderLogo?: boolean;
+  initialIdentificador?: string;
 }
 
-export function ForgotPasswordForm({ onSwitchToLogin, showHeaderLogo = true }: ForgotPasswordFormProps) {
-  const [identificador, setIdentificador] = useState('');
+export function ForgotPasswordForm({
+  onSwitchToLogin,
+  showHeaderLogo = true,
+  initialIdentificador = '',
+}: ForgotPasswordFormProps) {
+  const [identificador, setIdentificador] = useState(initialIdentificador);
   const [isLoading, setIsLoading] = useState(false);
   const [emailEnviado, setEmailEnviado] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
+
+  useEffect(() => {
+    if (initialIdentificador) {
+      setIdentificador(initialIdentificador);
+    }
+  }, [initialIdentificador]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -109,16 +120,19 @@ export function ForgotPasswordForm({ onSwitchToLogin, showHeaderLogo = true }: F
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} noValidate className="text-gray-700 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} noValidate autoComplete="off" className="text-gray-700 flex flex-col gap-4">
           <div className="flex flex-col">
             <label className="form-label" htmlFor="forgot-usuario">
               Usuário ou E-mail
             </label>
             <input
               id="forgot-usuario"
-              name="identificador"
+              name="recovery_account_id"
               type="text"
-              autoComplete="username"
+              autoComplete="off"
+              data-1p-ignore="true"
+              data-lpignore="true"
+              spellCheck={false}
               className="form-input"
               placeholder="Digite seu usuário ou e-mail cadastrado"
               value={identificador}

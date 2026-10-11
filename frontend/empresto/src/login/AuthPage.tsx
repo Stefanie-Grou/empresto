@@ -24,6 +24,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
 
   const [mode, setMode] = useState<AuthMode>(getInitialMode);
   const [fadeState, setFadeState] = useState<'in' | 'out'>('in');
+  const [prefilledUser, setPrefilledUser] = useState('');
 
   useEffect(() => {
     const handlePopState = () => {
@@ -37,8 +38,12 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const switchMode = (newMode: AuthMode) => {
+  const switchMode = (newMode: AuthMode, prefill?: string) => {
     if (fadeState === 'out') return;
+
+    if (prefill !== undefined) {
+      setPrefilledUser(prefill);
+    }
 
     setFadeState('out');
 
@@ -76,6 +81,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
           <ForgotPasswordForm
             onSwitchToLogin={() => switchMode('login')}
             showHeaderLogo={showHeaderLogo}
+            initialIdentificador={prefilledUser}
           />
         );
       case 'reset':
@@ -90,7 +96,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
         return (
           <LoginForm
             onSwitchToRegister={() => switchMode('register')}
-            onForgotPassword={() => switchMode('forgot')}
+            onForgotPassword={(typedUser) => switchMode('forgot', typedUser || '')}
             showHeaderLogo={showHeaderLogo}
           />
         );

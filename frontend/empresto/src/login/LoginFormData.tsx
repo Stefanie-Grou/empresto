@@ -17,7 +17,7 @@ interface ToastState {
 
 interface LoginFormProps {
   onSwitchToRegister?: () => void;
-  onForgotPassword?: () => void;
+  onForgotPassword?: (usuarioAtual?: string) => void;
   showHeaderLogo?: boolean;
 }
 
@@ -36,7 +36,11 @@ export function LoginForm({ onSwitchToRegister, onForgotPassword, showHeaderLogo
   useEffect(() => {
     const savedUser = localStorage.getItem('empresto_saved_user');
     if (savedUser) {
-      setFormData((prev) => ({ ...prev, usuario: savedUser }));
+      if (savedUser === 'admin@empresto.com') {
+        localStorage.removeItem('empresto_saved_user');
+      } else {
+        setFormData((prev) => ({ ...prev, usuario: savedUser }));
+      }
     }
   }, []);
 
@@ -197,7 +201,7 @@ export function LoginForm({ onSwitchToRegister, onForgotPassword, showHeaderLogo
 
           <button
             type="button"
-            onClick={onForgotPassword}
+            onClick={() => onForgotPassword?.(formData.usuario.trim())}
             className="text-emerald-500 hover:text-emerald-600 font-medium bg-transparent border-0 p-0 cursor-pointer"
           >
             Esqueceu a senha?
