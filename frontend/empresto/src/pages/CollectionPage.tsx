@@ -23,7 +23,7 @@ export default function CollectionPage() {
 
   //PUT
   const handleOpenEditModal = (item: InventoryItem) => {
-    setSelectedItem(item); // Define o item para preencher a modal
+    setSelectedItem(item); 
     setIsModalOpen(true);
   };
 
@@ -108,7 +108,7 @@ export default function CollectionPage() {
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
-        onEdit={(item) => console.log('Editar:', item)}
+        onEdit={handleOpenEditModal}
         onDelete={(item) => console.log('Excluir:', item)}
       />
 
@@ -116,7 +116,7 @@ export default function CollectionPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveItem}
-        title={selectedItem ? 'Editar Item do Acervo' : 'Cadastrar Item no Acervo'}
+        title= 'Cadastrar Item no Acervo'
         initialData={selectedItem}
       />
     </div>

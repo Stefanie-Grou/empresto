@@ -16,7 +16,7 @@ export default function ItemModal({
   isOpen,
   onClose,
   onSave,
-  title = 'Cadastrar Item no Acervo',
+  title,
   initialData,
 }: ItemModalProps) {
   const [bookTitle, setBookTitle] = useState('');
