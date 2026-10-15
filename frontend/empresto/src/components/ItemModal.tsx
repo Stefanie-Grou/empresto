@@ -10,14 +10,20 @@ interface ItemModalProps {
   onSave: (itemData: Omit<InventoryItem, 'id' | 'available'>) => void;
   title?: string;
   initialData?: InventoryItem | null;
+  isReadOnly?: boolean;        
+  warningMessage?: string;      
+  submitLabel?: string;       
 }
 
 export default function ItemModal({
   isOpen,
   onClose,
   onSave,
-  title,
+  title = 'Cadastrar Item no Acervo',
   initialData,
+  isReadOnly = false,
+  warningMessage,
+  submitLabel = 'Salvar',
 }: ItemModalProps) {
   const [bookTitle, setBookTitle] = useState('');
   const [bookAuthor, setBookAuthor] = useState('');
@@ -44,6 +50,9 @@ export default function ItemModal({
   if (!isOpen) return null;
 
   const validate = () => {
+    // Se for modo leitura (Exclusão), ignora as validações
+    if (isReadOnly) return true;
+
     const titleError = validateNotEmpty(bookTitle, 'Título');
     const authorError = validateNotEmpty(bookAuthor, 'Autor(a)');
     const quantityError = validateMinNumber(quantity, 0, 'Quantidade');
@@ -76,7 +85,6 @@ export default function ItemModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
       <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
-        {/* Cabeçalho */}
         <div className="flex items-center justify-between px-8 pt-6 pb-4 border-b border-gray-100">
           <h3 className="text-xl font-semibold text-gray-800 text-center w-full">
             {title}
@@ -90,7 +98,6 @@ export default function ItemModal({
           </button>
         </div>
 
-        {/* Formulário */}
         <form onSubmit={handleSubmit} className="p-8 space-y-5">
           <TextInput
             label="Título"
@@ -98,6 +105,7 @@ export default function ItemModal({
             onChange={(e) => setBookTitle(e.target.value)}
             placeholder="Ex: Rita Lee - Uma Autobiografia"
             error={errors.bookTitle}
+            disabled={isReadOnly}
           />
 
           <TextInput
@@ -106,6 +114,7 @@ export default function ItemModal({
             onChange={(e) => setBookAuthor(e.target.value)}
             placeholder="Ex: Rita Lee"
             error={errors.bookAuthor}
+            disabled={isReadOnly}
           />
 
           <div className="flex items-center gap-4 pt-1">
@@ -115,6 +124,7 @@ export default function ItemModal({
               value={quantity}
               onChange={(e) => setQuantity(Math.max(0, parseInt(e.target.value) || 0))}
               error={errors.quantity}
+              disabled={isReadOnly}
             />
 
             <div className="flex items-center gap-3 flex-1 justify-end">
@@ -123,7 +133,12 @@ export default function ItemModal({
                 <select
                   value={itemType}
                   onChange={(e) => setItemType(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-100/80 appearance-none rounded-xl text-sm text-gray-800 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer pr-8"
+                  disabled={isReadOnly}
+                  className={`w-full px-4 py-2 bg-gray-100/80 appearance-none rounded-xl text-sm text-gray-800 outline-none pr-8 ${
+                    isReadOnly
+                      ? 'cursor-not-allowed opacity-80'
+                      : 'focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer'
+                  }`}
                 >
                   <option value="Livro">Livro</option>
                   <option value="Revista">Revista</option>
@@ -138,6 +153,17 @@ export default function ItemModal({
             </div>
           </div>
 
+          {warningMessage && (
+            <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+              <div className="w-10 h-10 rounded-full border-2 border-red-500 flex items-center justify-center shrink-0">
+                <Icon icon="lucide:alert-triangle" className="w-5 h-5 text-red-500" />
+              </div>
+              <p className="text-sm font-medium text-gray-700 leading-snug">
+                {warningMessage}
+              </p>
+            </div>
+          )}
+
           <div className="flex items-center justify-center gap-4 pt-6">
             <button
               type="button"
@@ -150,7 +176,7 @@ export default function ItemModal({
               type="submit"
               className="px-10 py-3 bg-emerald-900 hover:bg-emerald-950 text-white font-medium text-sm rounded-2xl transition-colors cursor-pointer"
             >
-              Salvar
+              {submitLabel}
             </button>
           </div>
         </form>

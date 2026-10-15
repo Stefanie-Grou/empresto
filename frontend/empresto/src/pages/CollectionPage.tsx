@@ -9,27 +9,41 @@ import { inventoryService } from '../services/inventoryService';
 export default function CollectionPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  
+  const [modalMode, setModalMode] = useState<'create' | 'edit' | 'delete'>('create');
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // ***  HANDLERS DOS MODAIS ***
-  //POST
-  const handleOpenModal = () => {
+  // *** HANDLERS DOS MODAIS ***
+  // POST
+  const handleOpenCreateModal = () => {
     setSelectedItem(null);
+    setModalMode('create');
     setIsModalOpen(true);
   };
 
-  //PUT
+  // PUT
   const handleOpenEditModal = (item: InventoryItem) => {
-    setSelectedItem(item); 
+    setSelectedItem(item);
+    setModalMode('edit');
+    setIsModalOpen(true);
+  };
+
+  // DELETE 
+  const handleOpenDeleteModal = (item: InventoryItem) => {
+    setSelectedItem(item);
+    setModalMode('delete');
     setIsModalOpen(true);
   };
 
   const handleSaveItem = async (data: Omit<InventoryItem, 'id' | 'available'>) => {
     try {
-      if (selectedItem) {
+      if (modalMode === 'delete' && selectedItem) {
+        await inventoryService.delete(selectedItem.id);
+        console.log('Item excluído via DELETE');
+      } else if (modalMode === 'edit' && selectedItem) {
         await inventoryService.update(selectedItem.id, data);
         console.log('Item atualizado via PUT');
       } else {
@@ -38,19 +52,7 @@ export default function CollectionPage() {
       }
       setIsModalOpen(false);
     } catch (error) {
-      console.error('Erro ao salvar item:', error);
-    }
-  };
-
-  // DELETE - Deleção lógica
-  const handleDeleteItem = async (item: InventoryItem) => {
-    if (confirm(`Deseja realmente remover "${item.bookTitle}"?`)) {
-      try {
-        await inventoryService.delete(item.id);
-        console.log('Item excluído via DELETE');
-      } catch (error) {
-        console.error('Erro ao excluir item:', error);
-      }
+      console.error('Erro ao processar ação:', error);
     }
   };
 
@@ -100,7 +102,7 @@ export default function CollectionPage() {
         newItemLabel="Novo item"
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
-        onNewItemClick={handleOpenModal}
+        onNewItemClick={handleOpenCreateModal} 
       />
 
       <ItemsTable
@@ -109,15 +111,28 @@ export default function CollectionPage() {
         totalPages={totalPages}
         onPageChange={setCurrentPage}
         onEdit={handleOpenEditModal}
-        onDelete={(item) => console.log('Excluir:', item)}
+        onDelete={handleOpenDeleteModal} 
       />
 
       <ItemModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveItem}
-        title= 'Cadastrar Item no Acervo'
         initialData={selectedItem}
+        title={
+          modalMode === 'delete'
+            ? 'Remover Item do Acervo'
+            : modalMode === 'edit'
+            ? 'Editar Item do Acervo'
+            : 'Cadastrar Item no Acervo'
+        }
+        isReadOnly={modalMode === 'delete'}
+        warningMessage={
+          modalMode === 'delete'
+            ? 'Confirma a exclusão do acervo de todos os exemplares do item acima?'
+            : undefined
+        }
+        submitLabel={modalMode === 'delete' ? 'Excluir' : 'Salvar'}
       />
     </div>
   );
