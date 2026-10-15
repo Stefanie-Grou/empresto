@@ -3,17 +3,58 @@ import ItemsActionBarHeader from '../components/ItemsActionBarHeader';
 import ItemsTable from '../components/ItemsTable';
 import { MOCK_LOANS } from '../mocks/mock_loans';
 import type { InventoryItem } from '../interfaces/InventoryItem';
+import ItemModal from '../components/ItemModal';
+import { inventoryService } from '../services/inventoryService';
 
 export default function CollectionPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  // ***  HANDLERS DOS MODAIS ***
+  //POST
   const handleOpenModal = () => {
-    console.log('Abrir modal de novo empréstimo');
+    setSelectedItem(null);
+    setIsModalOpen(true);
   };
 
-const filteredItems: InventoryItem[] = useMemo(() => {
+  //PUT
+  const handleOpenEditModal = (item: InventoryItem) => {
+    setSelectedItem(item); // Define o item para preencher a modal
+    setIsModalOpen(true);
+  };
+
+  const handleSaveItem = async (data: Omit<InventoryItem, 'id' | 'available'>) => {
+    try {
+      if (selectedItem) {
+        await inventoryService.update(selectedItem.id, data);
+        console.log('Item atualizado via PUT');
+      } else {
+        await inventoryService.create(data);
+        console.log('Item criado via POST');
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Erro ao salvar item:', error);
+    }
+  };
+
+  // DELETE - Deleção lógica
+  const handleDeleteItem = async (item: InventoryItem) => {
+    if (confirm(`Deseja realmente remover "${item.bookTitle}"?`)) {
+      try {
+        await inventoryService.delete(item.id);
+        console.log('Item excluído via DELETE');
+      } catch (error) {
+        console.error('Erro ao excluir item:', error);
+      }
+    }
+  };
+
+  const filteredItems: InventoryItem[] = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
 
     return MOCK_LOANS
@@ -27,8 +68,8 @@ const filteredItems: InventoryItem[] = useMemo(() => {
       })
       .map((loan) => ({
         id: loan.id,
-        bookTitle: loan.bookTitle,  
-        bookAuthor: loan.bookAuthor, 
+        bookTitle: loan.bookTitle,
+        bookAuthor: loan.bookAuthor,
         coverUrl: loan.coverUrl,
         itemType: loan.itemType || 'Livro',
         quantity: 1,
@@ -58,8 +99,8 @@ const filteredItems: InventoryItem[] = useMemo(() => {
         placeholder="Buscar item"
         newItemLabel="Novo item"
         searchTerm={searchTerm}
-        onSearchChange={handleSearchChange} 
-        onNewItemClick={handleOpenModal}    
+        onSearchChange={handleSearchChange}
+        onNewItemClick={handleOpenModal}
       />
 
       <ItemsTable
@@ -69,6 +110,14 @@ const filteredItems: InventoryItem[] = useMemo(() => {
         onPageChange={setCurrentPage}
         onEdit={(item) => console.log('Editar:', item)}
         onDelete={(item) => console.log('Excluir:', item)}
+      />
+
+      <ItemModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveItem}
+        title={selectedItem ? 'Editar Item do Acervo' : 'Cadastrar Item no Acervo'}
+        initialData={selectedItem}
       />
     </div>
   );
