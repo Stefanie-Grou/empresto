@@ -5,6 +5,7 @@ import { MainLayout } from './components/MainLayout';
 import DashboardPage from './pages/DashboardPage';
 import CollectionPage from './pages/CollectionPage';
 import BookLendingPage from './pages/BookLendingPage';
+import ReservationPage from './pages/ReservationsPage';
 
 export default function App() {
   return (
@@ -19,7 +20,7 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/acervo" element={<CollectionPage />} />
           <Route path="/emprestimos" element={<BookLendingPage />} />
-          <Route path="/reservas" element={<div>Página de Reservas</div>} />
+          <Route path="/reservas" element={<ReservationPage />} />
           <Route path="/relatorios" element={<div>Página de Relatórios</div>} />
         </Route>
       </Routes>
