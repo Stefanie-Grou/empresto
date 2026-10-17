@@ -88,6 +88,11 @@ export default function BookLendingPage() {
     setCurrentPage(1);
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedLoan(null);
+  };
+
   const handleOpenCreateModal = () => {
     setSelectedLoan(null);
     setModalMode('create');
@@ -95,13 +100,13 @@ export default function BookLendingPage() {
   };
 
   const handleOpenEditModal = (item: LentItem) => {
-    setSelectedLoan(item);
+    setSelectedLoan({ ...item });
     setModalMode('edit');
     setIsModalOpen(true);
   };
 
   const handleOpenDeleteModal = (item: LentItem) => {
-    setSelectedLoan(item);
+    setSelectedLoan({ ...item });
     setModalMode('delete');
     setIsModalOpen(true);
   };
@@ -145,6 +150,7 @@ export default function BookLendingPage() {
         });
       }
       setIsModalOpen(false);
+      setSelectedLoan(null);
       await loadData();
     } catch (error: any) {
       setToast({
@@ -166,6 +172,7 @@ export default function BookLendingPage() {
         message: res.mensagem || 'Prazo prorrogado em 7 dias com sucesso.',
       });
       setIsModalOpen(false);
+      setSelectedLoan(null);
       await loadData();
     } catch (error: any) {
       setToast({
@@ -174,6 +181,8 @@ export default function BookLendingPage() {
         title: 'Erro ao renovar',
         message: error.message || 'Não foi possível renovar o empréstimo.',
       });
+      setIsModalOpen(false);
+      setSelectedLoan(null);
     }
   };
 
@@ -438,7 +447,7 @@ export default function BookLendingPage() {
 
       <LoanModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseModal}
         onSave={handleSaveLoan}
         onRenew={handleRenewLoan}
         initialData={selectedLoan}

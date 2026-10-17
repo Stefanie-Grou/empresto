@@ -62,14 +62,15 @@ export default function LoanModal({
   useEffect(() => {
     if (initialData) {
       setStudentName(initialData.studentName || '');
-      setStudentClass(initialData.studentClass || '');
+      setStudentClass((initialData.studentClass || '').replace(/\uFFFD/g, 'º'));
       const rawDate = (initialData as any).rawDueDate || parseToIso(initialData.dueDate);
       setDueDate(rawDate || getDefaultDueDate());
       const bId = (initialData as any).bookId || (initialData as any).id_livro;
       if (bId) {
         setBookId(Number(bId));
       } else {
-        const found = books.find((b) => b.bookTitle.toLowerCase() === initialData.bookTitle.toLowerCase());
+        const titleToMatch = (initialData?.bookTitle || '').toLowerCase();
+        const found = books.find((b) => (b?.bookTitle || '').toLowerCase() === titleToMatch);
         setBookId(found ? Number(found.id) : 0);
       }
       setStatus((initialData.status as any) || 'Pendente');
@@ -127,7 +128,7 @@ export default function LoanModal({
             {mode === 'delete'
               ? 'Remover Empréstimo'
               : mode === 'edit'
-              ? 'Visualizar Empréstimo'
+              ? 'Editar Empréstimo'
               : 'Cadastrar Novo Empréstimo'}
           </h3>
           <button
@@ -290,7 +291,7 @@ export default function LoanModal({
               Cancelar
             </button>
 
-            {mode === 'edit' && onRenew && initialData && status !== 'Devolvido' && (
+            {mode === 'edit' && onRenew && initialData && (
               <button
                 type="button"
                 onClick={() => onRenew(initialData)}

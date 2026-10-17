@@ -95,7 +95,7 @@ const getStatusColor = (status: string) => {
                     </td>
 
                     <td className="py-3.5 text-center text-gray-600">
-                      {item.studentClass || '-'}
+                      {item.studentClass ? item.studentClass.replace(/\uFFFD/g, 'º') : '-'}
                     </td>
 
                     <td className="py-3.5 text-center text-gray-600 font-medium">
