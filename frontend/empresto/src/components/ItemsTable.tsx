@@ -34,7 +34,7 @@ export default function ItemsTable({
                     <table className="w-full text-left text-sm font-jakarta">
                         <thead>
                             <tr className="text-xs uppercase font-semibold text-medium-gray border-b border-100-gray">
-                                <th className="pb-4 font-medium text-left pl-2">CÓDIGO</th>
+                                <th className="pb-4 font-medium text-center">CÓDIGO</th>
                                 <th className="pb-4 font-medium text-left">TÍTULO</th>
                                 <th className="pb-4 font-medium text-left">TIPO</th>
                                 <th className="pb-4 font-medium text-center">QUANTIDADE</th>
@@ -46,7 +46,7 @@ export default function ItemsTable({
                         <tbody className="divide-y divide-gray-50">
                             {items.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="py-3.5 pl-2 text-gray-600 font-medium">
+                                    <td className="py-3.5 text-center text-gray-600 font-medium">
                                         {item.id}
                                     </td>
 
