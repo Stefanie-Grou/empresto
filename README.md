@@ -127,7 +127,7 @@ backend/
     }
     ```
 * **Atualizar ou Renovar Empréstimo**
-  * **Método:** `POST`
+  * **Método:** `PUT`
   * **Rota:** `/api/v1/emprestimos`
   * **Corpo da Requisição:**
     ```json
