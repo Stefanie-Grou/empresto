@@ -49,8 +49,8 @@ const getStatusColor = (status: string) => {
             <thead>
               <tr className="text-xs uppercase font-semibold text-medium-gray border-b border-100-gray">
                 <th className="pb-4 font-medium text-center">CÓDIGO</th>
-                <th className="pb-4 font-medium">LIVRO</th>
-                <th className="pb-4 font-medium">ALUNO</th>
+                <th className="pb-4 font-medium text-left">LIVRO</th>
+                <th className="pb-4 font-medium text-left">ALUNO</th>
                 <th className="pb-4 font-medium text-center">TURMA</th>
                 <th className="pb-4 font-medium text-center">PRAZO</th>
                 <th className="pb-4 font-medium text-center">STATUS</th>
@@ -64,8 +64,7 @@ const getStatusColor = (status: string) => {
 
                 return (
                   <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                    {/* CÓDIGO */}
-                    <td className="py-3.5 pl-2 text-center text-gray-600 font-medium">
+                    <td className="py-3.5 text-center text-gray-600 font-medium">
                       {item.id}
                     </td>
 
@@ -112,7 +111,7 @@ const getStatusColor = (status: string) => {
                       </div>
                     </td>
 
-                    <td className="py-3.5 pr-2 text-right">
+                    <td className="py-3.5 pr-2 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
                           type="button"
