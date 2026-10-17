@@ -33,8 +33,10 @@ interface NumberInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export function NumberInput({ label, error, className = '', ...props }: NumberInputProps) {
   return (
-    <div className="flex items-center gap-3">
-      <label className="text-sm font-semibold text-gray-800">{label}</label>
+    <div className="flex items-center gap-4">
+      <label className="w-24 text-sm font-semibold text-gray-800 shrink-0">
+        {label}
+      </label>
       <div className="w-24">
         <input
           type="number"
