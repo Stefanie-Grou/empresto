@@ -7,8 +7,8 @@ interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export function TextInput({ label, error, className = '', ...props }: TextInputProps) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <label className="w-24 text-sm font-semibold text-gray-800 pt-2.5">
+    <div className="flex items-center justify-between gap-4">
+      <label className="text-sm font-semibold text-gray-800 shrink-0">
         {label}
       </label>
       <div className="flex-1">
@@ -16,9 +16,9 @@ export function TextInput({ label, error, className = '', ...props }: TextInputP
           {...props}
           className={`w-full px-4 py-2.5 bg-gray-100/80 rounded-xl text-sm text-gray-800 outline-none transition-all ${
             error
-              ? 'border border-red-500 bg-red-50/30 focus:ring-2 focus:ring-red-500'
+              ? 'border border-red-500 bg-red-50/30'
               : 'focus:bg-white focus:ring-2 focus:ring-emerald-800'
-          } ${className}`}
+          } ${props.disabled || props.readOnly ? 'cursor-not-allowed text-gray-500' : ''} ${className}`}
         />
         {error && <span className="text-xs text-red-500 mt-1 block">{error}</span>}
       </div>
