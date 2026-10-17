@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import type { LentItem } from '../interfaces/LentItem';
 import { formatTitleCase } from '../utils/textUtils';
+import DatePicker from './DatePicker';
 
 export interface LoanModalData {
   id?: string | number;
@@ -108,6 +109,19 @@ export default function LoanModal({
     }
     setErrors({});
   }, [initialData, isOpen, books]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -291,18 +305,11 @@ export default function LoanModal({
             <div className="flex items-center gap-2.5 w-48">
               <label className="text-sm font-semibold text-gray-800 shrink-0">Prazo</label>
               <div className="flex-1">
-                <input
-                  type="date"
+                <DatePicker
                   value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
+                  onChange={(iso) => setDueDate(iso)}
                   disabled={isReadOnly}
-                  className={`w-full px-3 py-2.5 bg-gray-100/80 rounded-xl text-xs text-gray-800 outline-none transition-all ${
-                    errors.dueDate
-                      ? 'border border-red-500 bg-red-50/30'
-                      : isReadOnly
-                      ? 'cursor-not-allowed opacity-80'
-                      : 'focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer'
-                  }`}
+                  error={errors.dueDate}
                 />
                 {errors.dueDate && <span className="text-xs text-red-500 mt-1 block">{errors.dueDate}</span>}
               </div>

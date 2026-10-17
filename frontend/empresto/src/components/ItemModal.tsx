@@ -48,10 +48,22 @@ export default function ItemModal({
     setErrors({});
   }, [initialData, isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const validate = () => {
-    // Se for modo leitura (Exclusão), ignora as validações
     if (isReadOnly) return true;
 
     const titleError = validateNotEmpty(bookTitle, 'Título');
