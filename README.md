@@ -126,6 +126,19 @@ backend/
       "dataDevolucaoPrevista": "2026-09-25"
     }
     ```
+* **Atualizar ou Renovar Empréstimo**
+  * **Método:** `POST`
+  * **Rota:** `/api/v1/emprestimos`
+  * **Corpo da Requisição:**
+    ```json
+    {
+      "acervoId": 1,
+      "nomeAluno": "João Silva",
+      "serie": "8º Ano A",
+      "dataDevolucaoPrevista": "2026-09-25"
+    }
+    ```
+    
   * **Resposta de Sucesso (201 Created):**
     ```json
     {
