@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import type { LentItem } from '../interfaces/LentItem';
+import { formatTitleCase } from '../utils/textUtils';
 
 export interface LoanModalData {
   id?: string | number;
@@ -142,7 +143,7 @@ export default function LoanModal({
 
     onSave({
       id: initialData?.id,
-      studentName: studentName.trim(),
+      studentName: formatTitleCase(studentName.trim()),
       studentClass,
       bookId,
       dueDate,
@@ -178,7 +179,8 @@ export default function LoanModal({
                 <input
                   type="text"
                   value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
+                  onChange={(e) => setStudentName(formatTitleCase(e.target.value, true))}
+                  onBlur={() => setStudentName((prev) => formatTitleCase(prev.trim()))}
                   placeholder="Ana Silva de Souza"
                   disabled={isReadOnly}
                   className={`w-full px-4 py-2.5 bg-gray-100/80 rounded-xl text-sm text-gray-800 outline-none transition-all ${

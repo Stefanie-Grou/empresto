@@ -1,4 +1,5 @@
 import { pool } from '../config/database.js';
+import { formatTitleCase } from '../utils/textUtils.js';
 
 export interface NovoEmprestimoDTO {
   nomeAluno?: string;
@@ -202,7 +203,7 @@ export class EmprestimoService {
   }
 
   public async registrar(dados: NovoEmprestimoDTO) {
-    const nomeAluno = (dados.nomeAluno || dados.studentName || '').trim();
+    const nomeAluno = formatTitleCase((dados.nomeAluno || dados.studentName || '').trim());
     const turma = (dados.turma || dados.studentClass || '').replace(/\uFFFD/g, 'º').trim();
     const livroIdRaw = dados.livroId !== undefined ? dados.livroId : dados.bookId;
     const livroId = Number(livroIdRaw);
@@ -303,7 +304,9 @@ export class EmprestimoService {
     }
 
     const emprestimoAtual = empRes.rows[0];
-    const nomeAluno = (dados.nomeAluno || dados.studentName || '').trim();
+    const nomeAluno = (dados.nomeAluno || dados.studentName || '').trim()
+      ? formatTitleCase((dados.nomeAluno || dados.studentName || '').trim())
+      : '';
     const turma = (dados.turma || dados.studentClass || '').replace(/\uFFFD/g, 'º').trim();
     const livroIdRaw = dados.livroId !== undefined ? dados.livroId : dados.bookId;
     const novoLivroId = livroIdRaw ? Number(livroIdRaw) : emprestimoAtual.id_livro;

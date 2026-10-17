@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import type { InventoryItem } from '../interfaces/InventoryItem';
 import { TextInput, NumberInput } from './FormInput';
 import { validateNotEmpty, validateMinNumber } from '../utils/validationUtils';
+import { formatTitleCase } from '../utils/textUtils';
 
 interface ItemModalProps {
   isOpen: boolean;
@@ -72,8 +73,8 @@ export default function ItemModal({
     if (!validate()) return;
 
     onSave({
-      bookTitle: bookTitle.trim(),
-      bookAuthor: bookAuthor.trim(),
+      bookTitle: formatTitleCase(bookTitle.trim()),
+      bookAuthor: formatTitleCase(bookAuthor.trim()),
       quantity: Number(quantity),
       itemType,
     });
@@ -102,7 +103,8 @@ export default function ItemModal({
           <TextInput
             label="Título"
             value={bookTitle}
-            onChange={(e) => setBookTitle(e.target.value)}
+            onChange={(e) => setBookTitle(formatTitleCase(e.target.value, true))}
+            onBlur={() => setBookTitle((prev) => formatTitleCase(prev.trim()))}
             placeholder="Ex: Rita Lee - Uma Autobiografia"
             error={errors.bookTitle}
             disabled={isReadOnly}
@@ -111,7 +113,8 @@ export default function ItemModal({
           <TextInput
             label="Autor(a)"
             value={bookAuthor}
-            onChange={(e) => setBookAuthor(e.target.value)}
+            onChange={(e) => setBookAuthor(formatTitleCase(e.target.value, true))}
+            onBlur={() => setBookAuthor((prev) => formatTitleCase(prev.trim()))}
             placeholder="Ex: Rita Lee"
             error={errors.bookAuthor}
             disabled={isReadOnly}

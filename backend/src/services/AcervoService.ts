@@ -1,4 +1,5 @@
 import { pool } from '../config/database.js';
+import { formatTitleCase } from '../utils/textUtils.js';
 
 export interface NovoItemDTO {
   titulo?: string;
@@ -79,8 +80,8 @@ export class AcervoService {
   }
 
   public async cadastrar(dados: NovoItemDTO) {
-    const titulo = (dados.titulo || dados.bookTitle || '').trim();
-    const autor = (dados.autor || dados.bookAuthor || '').trim();
+    const titulo = formatTitleCase((dados.titulo || dados.bookTitle || '').trim());
+    const autor = formatTitleCase((dados.autor || dados.bookAuthor || '').trim());
     const tipo = (dados.tipo || dados.genero || dados.itemType || 'Livro').trim();
     const quantidadeRaw = dados.quantidadeTotal !== undefined ? dados.quantidadeTotal : dados.quantity;
     const quantidade = Number(quantidadeRaw);
@@ -148,11 +149,11 @@ export class AcervoService {
     const itemAtual = currentResult.rows[0];
 
     const titulo = dados.titulo !== undefined || dados.bookTitle !== undefined
-      ? (dados.titulo || dados.bookTitle || '').trim()
+      ? formatTitleCase((dados.titulo || dados.bookTitle || '').trim())
       : itemAtual.titulo;
 
     const autor = dados.autor !== undefined || dados.bookAuthor !== undefined
-      ? (dados.autor || dados.bookAuthor || '').trim()
+      ? formatTitleCase((dados.autor || dados.bookAuthor || '').trim())
       : itemAtual.autor;
 
     const tipo = dados.tipo !== undefined || dados.genero !== undefined || dados.itemType !== undefined
