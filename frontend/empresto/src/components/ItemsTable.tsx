@@ -33,13 +33,13 @@ export default function ItemsTable({
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm font-jakarta">
                         <thead>
-                            <tr className="text-xs uppercase font-semibold text-medium-gray border-b border-100-gray text-center">
-                                <th className="pb-4 font-medium">CÓDIGO</th>
-                                <th className="pb-4 font-medium">TÍTULO</th>
-                                <th className="pb-4 font-medium">TIPO</th>
-                                <th className="pb-4 font-medium">QUANTIDADE</th>
-                                <th className="pb-4 font-medium">DISPONÍVEIS</th>
-                                <th className="pb-4 font-medium">AÇÕES</th>
+                            <tr className="text-xs uppercase font-semibold text-medium-gray border-b border-100-gray">
+                                <th className="pb-4 font-medium text-left pl-2">CÓDIGO</th>
+                                <th className="pb-4 font-medium text-left">TÍTULO</th>
+                                <th className="pb-4 font-medium text-left">TIPO</th>
+                                <th className="pb-4 font-medium text-center">QUANTIDADE</th>
+                                <th className="pb-4 font-medium text-center">DISPONÍVEIS</th>
+                                <th className="pb-4 font-medium text-center">AÇÕES</th>
                             </tr>
                         </thead>
 
@@ -84,7 +84,7 @@ export default function ItemsTable({
                                         {item.available}
                                     </td>
 
-                                    <td className="py-3.5 pr-2 text-right">
+                                    <td className="py-3.5 pr-2 text-center">
                                         <div className="flex items-center justify-center gap-2">
                                             <button
                                                 type="button"

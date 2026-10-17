@@ -1,7 +1,8 @@
+import type { ReactNode } from 'react';
 import { Icon } from '@iconify/react';
 
 interface ItemsActionBarProps {
-title?: string;
+  title?: string;
   subtitle?: string;
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -11,6 +12,9 @@ title?: string;
   newItemLabel?: string;
   showNewItemButton?: boolean;
   showFilterButton?: boolean;
+  filterDropdown?: ReactNode;
+  isFilterActive?: boolean;
+  filterCount?: number;
 }
 
 export default function ItemsActionBar({
@@ -24,6 +28,9 @@ export default function ItemsActionBar({
   newItemLabel = 'Novo item',
   showNewItemButton = true,
   showFilterButton = true,
+  filterDropdown,
+  isFilterActive = false,
+  filterCount = 0,
 }: ItemsActionBarProps) {
   return (
     <div>
@@ -55,14 +62,26 @@ export default function ItemsActionBar({
         </div>
 
         {showFilterButton && (
-          <button
-            type="button"
-            onClick={onFilterClick}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-emerald-800/30 text-emerald-800 hover:bg-emerald-50/50 rounded-xl text-sm font-medium transition-colors cursor-pointer shrink-0"
-          >
-            <Icon icon="lucide:funnel" className="w-4 h-4" />
-            <span>Filtro</span>
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={onFilterClick}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer shrink-0 border ${
+                isFilterActive
+                  ? 'bg-emerald-50 border-emerald-800 text-emerald-900 shadow-xs'
+                  : 'bg-white border-emerald-800/30 text-emerald-800 hover:bg-emerald-50/50'
+              }`}
+            >
+              <Icon icon="lucide:funnel" className="w-4 h-4" />
+              <span>Filtro</span>
+              {filterCount > 0 && (
+                <span className="w-5 h-5 bg-emerald-800 text-white rounded-full text-xs flex items-center justify-center font-bold">
+                  {filterCount}
+                </span>
+              )}
+            </button>
+            {filterDropdown}
+          </div>
         )}
 
         {showNewItemButton && (
