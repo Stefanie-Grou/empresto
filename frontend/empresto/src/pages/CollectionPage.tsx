@@ -1,37 +1,58 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import ItemsActionBarHeader from '../components/ItemsActionBarHeader';
 import ItemsTable from '../components/ItemsTable';
-import { MOCK_LOANS } from '../mocks/mock_loans';
 import type { InventoryItem } from '../interfaces/InventoryItem';
 import ItemModal from '../components/ItemModal';
 import { inventoryService } from '../services/inventoryService';
+import Toast, { type ToastType } from '../components/Toast';
+
+interface ToastState {
+  id: number;
+  type: ToastType;
+  title: string;
+  message: string;
+}
 
 export default function CollectionPage() {
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [toast, setToast] = useState<ToastState | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
-  
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'delete'>('create');
-
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // *** HANDLERS DOS MODAIS ***
-  // POST
+  const loadItems = async () => {
+    try {
+      const data = await inventoryService.getAll();
+      setItems(data);
+    } catch (error: any) {
+      setToast({
+        id: Date.now(),
+        type: 'error',
+        title: 'Erro ao carregar acervo',
+        message: error.message || 'Não foi possível carregar os itens do acervo.',
+      });
+    }
+  };
+
+  useEffect(() => {
+    loadItems();
+  }, []);
+
   const handleOpenCreateModal = () => {
     setSelectedItem(null);
     setModalMode('create');
     setIsModalOpen(true);
   };
 
-  // PUT
   const handleOpenEditModal = (item: InventoryItem) => {
     setSelectedItem(item);
     setModalMode('edit');
     setIsModalOpen(true);
   };
 
-  // DELETE 
   const handleOpenDeleteModal = (item: InventoryItem) => {
     setSelectedItem(item);
     setModalMode('delete');
@@ -42,42 +63,54 @@ export default function CollectionPage() {
     try {
       if (modalMode === 'delete' && selectedItem) {
         await inventoryService.delete(selectedItem.id);
-        console.log('Item excluído via DELETE');
+        setToast({
+          id: Date.now(),
+          type: 'success',
+          title: 'Item removido',
+          message: 'O exemplar foi removido do acervo com sucesso.',
+        });
       } else if (modalMode === 'edit' && selectedItem) {
         await inventoryService.update(selectedItem.id, data);
-        console.log('Item atualizado via PUT');
+        setToast({
+          id: Date.now(),
+          type: 'success',
+          title: 'Item atualizado',
+          message: 'As alterações do item foram salvas com sucesso.',
+        });
       } else {
         await inventoryService.create(data);
-        console.log('Item criado via POST');
+        setToast({
+          id: Date.now(),
+          type: 'success',
+          title: 'Item cadastrado',
+          message: 'Novo exemplar adicionado ao acervo com sucesso.',
+        });
       }
       setIsModalOpen(false);
-    } catch (error) {
-      console.error('Erro ao processar ação:', error);
+      await loadItems();
+    } catch (error: any) {
+      setToast({
+        id: Date.now(),
+        type: 'error',
+        title: modalMode === 'delete' ? 'Erro ao remover' : modalMode === 'edit' ? 'Erro ao atualizar' : 'Erro ao cadastrar',
+        message: error.message || 'Ocorreu um erro ao processar a solicitação.',
+      });
     }
   };
 
   const filteredItems: InventoryItem[] = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
 
-    return MOCK_LOANS
-      .filter((item) => {
-        if (!term) return true;
-        return (
-          item.bookTitle.toLowerCase().includes(term) ||
-          item.bookAuthor.toLowerCase().includes(term) ||
-          String(item.id).toLowerCase().includes(term)
-        );
-      })
-      .map((loan) => ({
-        id: loan.id,
-        bookTitle: loan.bookTitle,
-        bookAuthor: loan.bookAuthor,
-        coverUrl: loan.coverUrl,
-        itemType: loan.itemType || 'Livro',
-        quantity: 1,
-        available: 1,
-      }));
-  }, [searchTerm]);
+    return items.filter((item) => {
+      if (!term) return true;
+      return (
+        item.bookTitle.toLowerCase().includes(term) ||
+        item.bookAuthor.toLowerCase().includes(term) ||
+        (item.itemType && item.itemType.toLowerCase().includes(term)) ||
+        String(item.id).toLowerCase().includes(term)
+      );
+    });
+  }, [items, searchTerm]);
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
 
@@ -134,6 +167,16 @@ export default function CollectionPage() {
         }
         submitLabel={modalMode === 'delete' ? 'Excluir' : 'Salvar'}
       />
+
+      {toast && (
+        <Toast
+          key={toast.id}
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ const apiRouter = Router();
 
 apiRouter.use('/auth', authRoutes);
 apiRouter.use('/acervo', acervoRoutes);
+apiRouter.use('/inventory', acervoRoutes);
 apiRouter.use('/emprestimos', emprestimoRoutes);
 
 export default apiRouter;
