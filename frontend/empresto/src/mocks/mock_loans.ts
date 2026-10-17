@@ -14,12 +14,12 @@ export const MOCK_LOANS: LoanItem[] = [
   },
   {
     id: '2',
-    bookTitle: 'Turma da Mônica Jovem...',
+    bookTitle: 'Turma da Mônica Jovem',
     bookAuthor: 'Maurício de Sousa',
     userName: 'Renato Dias',
     classGroup: '-',
     userType: 'Professor',
-    dueDate: '11/09/2026',
+    dueDate: '11/09/2027',
     itemType: 'Quadrinho'
   },
   {
@@ -29,7 +29,7 @@ export const MOCK_LOANS: LoanItem[] = [
     userName: 'Lucas Gomes',
     classGroup: '7B',
     userType: 'Aluno',
-    dueDate: '15/09/2026',
+    dueDate: '15/09/2027',
     itemType: 'Livro'
   },
   {
@@ -51,14 +51,14 @@ export const MOCK_LOANS: LoanItem[] = [
     userType: 'Aluno',
     dueDate: '15/09/2026',
     itemType: 'Livro'
-  },{
+  }, {
     id: '6',
     bookTitle: 'Biologia de Campbell',
     bookAuthor: 'Andrew Reece',
     userName: 'Elisângela Roberta',
     classGroup: '-',
     userType: 'Aluno',
-    dueDate: '15/09/2026',
+    dueDate: '15/09/2027',
     itemType: 'Livro'
   },
 ];

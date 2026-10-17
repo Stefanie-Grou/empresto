@@ -1,4 +1,5 @@
 import type { InventoryItem } from '../interfaces/InventoryItem';
+import { ENDPOINTS } from './apiConfig';
 
 // Contrato esperado pela API para POST / PUT
 export interface InventoryPayload {
@@ -8,7 +9,6 @@ export interface InventoryPayload {
   quantidadeTotal: number;
 }
 
-// Converte a interface do React para o formato aceito pela API
 export function toInventoryPayload(data: Omit<InventoryItem, 'id' | 'available'>): InventoryPayload {
   return {
     titulo: data.bookTitle,
@@ -20,36 +20,51 @@ export function toInventoryPayload(data: Omit<InventoryItem, 'id' | 'available'>
 
 // Operações HTTP respeitando os verbos REST
 export const inventoryService = {
-  // POST - Criar novo item
+  // POST - Criar novo item no acervo
   async create(itemData: Omit<InventoryItem, 'id' | 'available'>) {
     const payload = toInventoryPayload(itemData);
-    const response = await fetch('/api/inventory', {
+    const url = ENDPOINTS.INVENTORY;
+
+    console.log(`[POST] Enviando requisição para: ${url}`, payload);
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (!response.ok) throw new Error('Erro ao cadastrar item');
+
+    if (!response.ok) throw new Error('Erro ao cadastrar item no acervo');
     return response.json();
   },
 
-  // PUT - Atualizar item existente
+  // PUT - Atualizar item existente no acervo
   async update(id: string | number, itemData: Omit<InventoryItem, 'id' | 'available'>) {
     const payload = toInventoryPayload(itemData);
-    const response = await fetch(`/api/inventory/${id}`, {
+    const url = `${ENDPOINTS.INVENTORY}/${id}`;
+
+    console.log(`[PUT] Enviando requisição para: ${url}`, payload);
+
+    const response = await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (!response.ok) throw new Error('Erro ao atualizar item');
+
+    if (!response.ok) throw new Error('Erro ao atualizar item do acervo');
     return response.json();
   },
 
-  // DELETE - Deleção lógica do item
+  // DELETE - Deleção do item
   async delete(id: string | number) {
-    const response = await fetch(`/api/inventory/${id}`, {
+    const url = `${ENDPOINTS.INVENTORY}/${id}`;
+
+    console.log(`[DELETE] Enviando requisição para: ${url}`);
+
+    const response = await fetch(url, {
       method: 'DELETE',
     });
-    if (!response.ok) throw new Error('Erro ao excluir item');
+
+    if (!response.ok) throw new Error('Erro ao excluir item do acervo');
     return response.json();
   },
 };

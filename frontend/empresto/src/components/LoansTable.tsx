@@ -23,17 +23,17 @@ export default function LoansTable({
   onRenew,
   onDelete,
 }: LoansTableProps) {
-const getStatusColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'atrasado':
-      return { dot: 'bg-red-500', text: 'text-red-700' };
-    case 'devolvido':
-      return { dot: 'bg-emerald-500', text: 'text-emerald-700' };
-    case 'pendente':
-    default:
-      return { dot: 'bg-amber-500', text: 'text-amber-700' };
-  }
-};
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'atrasado':
+        return { dot: 'bg-red-500', text: 'text-red-700' };
+      case 'devolvido':
+        return { dot: 'bg-emerald-500', text: 'text-emerald-700' };
+      case 'pendente':
+      default:
+        return { dot: 'bg-amber-500', text: 'text-amber-700' };
+    }
+  };
 
   return (
     <div className="bg-white-background border border-100-gray rounded-2xl p-6 shadow-xs w-full flex flex-col justify-between h-full">
@@ -126,8 +126,8 @@ const getStatusColor = (status: string) => {
                         <button
                           type="button"
                           onClick={() => onRenew?.(item)}
-                          className="p-1.5 bg-sky-100/60 hover:bg-sky-200 text-sky-700 rounded-lg transition-colors cursor-pointer"
-                          title="Devolver / Renovar"
+                          className="p-1.5 gray-button-with-hover"
+                          title="Renovar"
                         >
                           <Icon icon="lucide:rotate-cw" className="w-3.5 h-3.5" />
                         </button>
@@ -136,7 +136,7 @@ const getStatusColor = (status: string) => {
                           type="button"
                           onClick={() => onDelete?.(item)}
                           className="p-1.5 bg-red-100/60 hover:bg-red-200 text-soft-red rounded-lg transition-colors cursor-pointer"
-                          title="Excluir"
+                          title="Excluir/Devolver"
                         >
                           <Icon icon="lucide:x" className="w-3.5 h-3.5" />
                         </button>

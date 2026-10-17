@@ -3,7 +3,7 @@ import ItemsActionBarHeader from '../components/ItemsActionBarHeader';
 import ItemsTable from '../components/ItemsTable';
 import { MOCK_LOANS } from '../mocks/mock_loans';
 import type { InventoryItem } from '../interfaces/InventoryItem';
-import ItemModal from '../components/ItemModal';
+import ItemModal from '../components/modals/ItemModal';
 import { inventoryService } from '../services/inventoryService';
 
 export default function CollectionPage() {
