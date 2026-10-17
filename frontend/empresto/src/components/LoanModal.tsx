@@ -41,6 +41,26 @@ function parseToIso(value: string): string {
   return value;
 }
 
+function parseClassString(val: string): { grade: string; letter: string } {
+  if (!val) return { grade: '', letter: '' };
+  const clean = val.replace(/\uFFFD/g, 'º').trim();
+  const emMatch = clean.match(/([1-3])\s*º?\s*EM\s*([A-Za-z])?/i);
+  if (emMatch) {
+    return {
+      grade: `${emMatch[1]}º EM`,
+      letter: (emMatch[2] || '').toUpperCase(),
+    };
+  }
+  const fundMatch = clean.match(/([1-9])\s*º?\s*(?:ano)?\s*([A-Za-z])?/i);
+  if (fundMatch) {
+    return {
+      grade: `${fundMatch[1]}º Ano`,
+      letter: (fundMatch[2] || '').toUpperCase(),
+    };
+  }
+  return { grade: '', letter: '' };
+}
+
 export default function LoanModal({
   isOpen,
   onClose,
@@ -51,7 +71,8 @@ export default function LoanModal({
   books = [],
 }: LoanModalProps) {
   const [studentName, setStudentName] = useState('');
-  const [studentClass, setStudentClass] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState('');
+  const [selectedLetter, setSelectedLetter] = useState('');
   const [bookId, setBookId] = useState<number>(0);
   const [dueDate, setDueDate] = useState('');
   const [status, setStatus] = useState<'Pendente' | 'Atrasado' | 'Devolvido'>('Pendente');
@@ -62,7 +83,9 @@ export default function LoanModal({
   useEffect(() => {
     if (initialData) {
       setStudentName(initialData.studentName || '');
-      setStudentClass((initialData.studentClass || '').replace(/\uFFFD/g, 'º'));
+      const parsed = parseClassString(initialData.studentClass || '');
+      setSelectedGrade(parsed.grade);
+      setSelectedLetter(parsed.letter);
       const rawDate = (initialData as any).rawDueDate || parseToIso(initialData.dueDate);
       setDueDate(rawDate || getDefaultDueDate());
       const bId = (initialData as any).bookId || (initialData as any).id_livro;
@@ -76,7 +99,8 @@ export default function LoanModal({
       setStatus((initialData.status as any) || 'Pendente');
     } else {
       setStudentName('');
-      setStudentClass('');
+      setSelectedGrade('');
+      setSelectedLetter('');
       setBookId(books.length > 0 ? Number(books[0].id) : 0);
       setDueDate(getDefaultDueDate());
       setStatus('Pendente');
@@ -110,10 +134,16 @@ export default function LoanModal({
     e.preventDefault();
     if (!validate()) return;
 
+    const studentClass = selectedGrade
+      ? selectedLetter
+        ? `${selectedGrade} ${selectedLetter}`
+        : selectedGrade
+      : '';
+
     onSave({
       id: initialData?.id,
       studentName: studentName.trim(),
-      studentClass: studentClass.trim(),
+      studentClass,
       bookId,
       dueDate,
       status,
@@ -163,18 +193,65 @@ export default function LoanModal({
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 w-36">
+            <div className="flex items-center gap-2.5 w-48">
               <label className="text-sm font-semibold text-gray-800 shrink-0">Turma</label>
-              <input
-                type="text"
-                value={studentClass}
-                onChange={(e) => setStudentClass(e.target.value)}
-                placeholder="7B"
-                disabled={isReadOnly}
-                className={`w-full px-3 py-2.5 bg-gray-100/80 rounded-xl text-sm text-center text-gray-800 outline-none transition-all ${
-                  isReadOnly ? 'cursor-not-allowed opacity-80' : 'focus:bg-white focus:ring-2 focus:ring-emerald-800'
-                }`}
-              />
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <div className="relative flex-1 min-w-0">
+                  <select
+                    value={selectedGrade}
+                    onChange={(e) => setSelectedGrade(e.target.value)}
+                    disabled={isReadOnly}
+                    className={`w-full px-2 py-2.5 bg-gray-100/80 rounded-xl text-xs text-gray-800 outline-none appearance-none pr-5 transition-all truncate ${
+                      isReadOnly ? 'cursor-not-allowed opacity-80' : 'focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer'
+                    }`}
+                  >
+                    <option value="">Série...</option>
+                    <optgroup label="Fundamental">
+                      <option value="1º Ano">1º Ano</option>
+                      <option value="2º Ano">2º Ano</option>
+                      <option value="3º Ano">3º Ano</option>
+                      <option value="4º Ano">4º Ano</option>
+                      <option value="5º Ano">5º Ano</option>
+                      <option value="6º Ano">6º Ano</option>
+                      <option value="7º Ano">7º Ano</option>
+                      <option value="8º Ano">8º Ano</option>
+                      <option value="9º Ano">9º Ano</option>
+                    </optgroup>
+                    <optgroup label="Ensino Médio">
+                      <option value="1º EM">1º EM</option>
+                      <option value="2º EM">2º EM</option>
+                      <option value="3º EM">3º EM</option>
+                    </optgroup>
+                  </select>
+                  <Icon
+                    icon="lucide:chevron-down"
+                    className="w-3 h-3 text-gray-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                  />
+                </div>
+
+                <div className="relative w-14 shrink-0">
+                  <select
+                    value={selectedLetter}
+                    onChange={(e) => setSelectedLetter(e.target.value)}
+                    disabled={isReadOnly}
+                    className={`w-full px-1.5 py-2.5 bg-gray-100/80 rounded-xl text-xs text-center text-gray-800 outline-none appearance-none pr-4 transition-all ${
+                      isReadOnly ? 'cursor-not-allowed opacity-80' : 'focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer'
+                    }`}
+                  >
+                    <option value="">-</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                  </select>
+                  <Icon
+                    icon="lucide:chevron-down"
+                    className="w-3 h-3 text-gray-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -291,7 +368,7 @@ export default function LoanModal({
               Cancelar
             </button>
 
-            {mode === 'edit' && onRenew && initialData && (
+            {mode === 'edit' && onRenew && initialData && status !== 'Devolvido' && (
               <button
                 type="button"
                 onClick={() => onRenew(initialData)}

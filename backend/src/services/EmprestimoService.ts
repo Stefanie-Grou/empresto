@@ -398,71 +398,32 @@ export class EmprestimoService {
 
     const emp = empRes.rows[0];
     const isDevolvido = emp.devolucao && emp.devolucao.toLowerCase().includes('feita') && !emp.devolucao.toLowerCase().includes('não');
-
-    let novoPrazoFormatado = '';
-
     if (isDevolvido) {
-      const livroRes = await pool.query(
-        'SELECT id_livro, titulo, quantidade_disponivel FROM livro WHERE id_livro = $1',
-        [emp.id_livro]
-      );
-      if (livroRes.rows.length === 0) {
-        const error: any = new Error('Livro associado não encontrado.');
-        error.statusCode = 404;
-        throw error;
-      }
-      const livro = livroRes.rows[0];
-      if (livro.quantidade_disponivel <= 0) {
-        const error: any = new Error(`Não há exemplares disponíveis de "${livro.titulo}" para reativar este empréstimo.`);
-        error.statusCode = 400;
-        throw error;
-      }
-
-      await pool.query('UPDATE livro SET quantidade_disponivel = quantidade_disponivel - 1 WHERE id_livro = $1', [emp.id_livro]);
-
-      const updateRes = await pool.query(
-        `UPDATE emprestimo 
-         SET prazo_devolucao = CURRENT_DATE + ($1 || ' days')::INTERVAL,
-             devolucao = 'Não feita',
-             atraso = 'Não'
-         WHERE id_emprestimo = $2
-         RETURNING prazo_devolucao`,
-        [String(diasAdicionais), id]
-      );
-
-      const d = new Date(updateRes.rows[0].prazo_devolucao);
-      const dia = String(d.getUTCDate()).padStart(2, '0');
-      const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
-      const ano = d.getUTCFullYear();
-      novoPrazoFormatado = `${dia}/${mes}/${ano}`;
-
-      return {
-        id,
-        novoPrazo: novoPrazoFormatado,
-        mensagem: `Empréstimo reativado com sucesso até ${novoPrazoFormatado}!`,
-      };
-    } else {
-      const updateRes = await pool.query(
-        `UPDATE emprestimo 
-         SET prazo_devolucao = GREATEST(prazo_devolucao, CURRENT_DATE) + ($1 || ' days')::INTERVAL,
-             atraso = 'Não'
-         WHERE id_emprestimo = $2
-         RETURNING prazo_devolucao`,
-        [String(diasAdicionais), id]
-      );
-
-      const d = new Date(updateRes.rows[0].prazo_devolucao);
-      const dia = String(d.getUTCDate()).padStart(2, '0');
-      const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
-      const ano = d.getUTCFullYear();
-      novoPrazoFormatado = `${dia}/${mes}/${ano}`;
-
-      return {
-        id,
-        novoPrazo: novoPrazoFormatado,
-        mensagem: `Empréstimo renovado com sucesso até ${novoPrazoFormatado}!`,
-      };
+      const error: any = new Error('Não é possível renovar um empréstimo já devolvido.');
+      error.statusCode = 400;
+      throw error;
     }
+
+    const updateRes = await pool.query(
+      `UPDATE emprestimo 
+       SET prazo_devolucao = GREATEST(prazo_devolucao, CURRENT_DATE) + ($1 || ' days')::INTERVAL,
+           atraso = 'Não'
+       WHERE id_emprestimo = $2
+       RETURNING prazo_devolucao`,
+      [String(diasAdicionais), id]
+    );
+
+    const d = new Date(updateRes.rows[0].prazo_devolucao);
+    const dia = String(d.getUTCDate()).padStart(2, '0');
+    const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const ano = d.getUTCFullYear();
+    const novoPrazoFormatado = `${dia}/${mes}/${ano}`;
+
+    return {
+      id,
+      novoPrazo: novoPrazoFormatado,
+      mensagem: `Empréstimo renovado com sucesso até ${novoPrazoFormatado}!`,
+    };
   }
 
   public async devolver(id: number) {

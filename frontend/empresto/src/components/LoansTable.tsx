@@ -126,7 +126,7 @@ const getStatusColor = (status: string) => {
                           type="button"
                           onClick={() => onRenew?.(item)}
                           className="p-1.5 bg-sky-100/60 hover:bg-sky-200 text-sky-700 rounded-lg transition-colors cursor-pointer"
-                          title="Devolver / Renovar"
+                          title="Renovar empréstimo"
                         >
                           <Icon icon="lucide:rotate-cw" className="w-3.5 h-3.5" />
                         </button>

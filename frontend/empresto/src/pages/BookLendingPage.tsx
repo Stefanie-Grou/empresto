@@ -186,29 +186,6 @@ export default function BookLendingPage() {
     }
   };
 
-  const handleQuickReturn = async (item: LentItem) => {
-    try {
-      if (item.status === 'Devolvido') {
-        await handleRenewLoan(item);
-        return;
-      }
-      await loanService.returnLoan(item.id);
-      setToast({
-        id: Date.now(),
-        type: 'success',
-        title: 'Devolução registrada',
-        message: `Livro "${item.bookTitle}" devolvido ao acervo com sucesso.`,
-      });
-      await loadData();
-    } catch (error: any) {
-      setToast({
-        id: Date.now(),
-        type: 'error',
-        title: 'Erro ao registrar devolução',
-        message: error.message || 'Não foi possível registrar a devolução.',
-      });
-    }
-  };
 
   const filteredItems: LentItem[] = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
@@ -441,7 +418,7 @@ export default function BookLendingPage() {
         totalPages={totalPages}
         onPageChange={setCurrentPage}
         onEdit={handleOpenEditModal}
-        onRenew={handleQuickReturn}
+        onRenew={handleRenewLoan}
         onDelete={handleOpenDeleteModal}
       />
 
