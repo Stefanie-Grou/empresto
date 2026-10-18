@@ -3,7 +3,7 @@ export interface InventoryItem {
   bookTitle: string;
   bookAuthor: string;
   coverUrl?: string;
-  itemType: string; // Ex: 'Livro', 'Quadrinho'
+  itemType: string;
   quantity: number;
   available: number;
 }

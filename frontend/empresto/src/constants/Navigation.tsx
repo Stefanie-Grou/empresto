@@ -55,8 +55,6 @@ export default function HeaderElement() {
           </p>
         </div>
       </div>
-
-      {/* Direita: Componente do Usuário com Dropdown */}
       <DropdownOptions userName="Ana Carolina" userRole="Bibliotecária" />
     </header>
   );

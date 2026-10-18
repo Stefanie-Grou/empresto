@@ -50,7 +50,6 @@ export default function ReservationsTable({
 
                 return (
                   <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                    {/* CÓDIGO */}
                     <td className="py-3.5 pl-2 text-center text-gray-600 font-medium">
                       {item.id}
                     </td>
