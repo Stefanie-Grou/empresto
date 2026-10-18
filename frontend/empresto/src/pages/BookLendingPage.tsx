@@ -31,6 +31,7 @@ const defaultFilters: FilterState = {
 export default function BookLendingPage() {
   const [loans, setLoans] = useState<LentItem[]>([]);
   const [books, setBooks] = useState<InventoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<LentItem | null>(null);
@@ -42,6 +43,7 @@ export default function BookLendingPage() {
   const itemsPerPage = 5;
 
   const loadData = async () => {
+    setIsLoading(true);
     try {
       const [loansData, booksData] = await Promise.all([
         loanService.getAll(),
@@ -56,6 +58,8 @@ export default function BookLendingPage() {
         title: 'Erro ao carregar dados',
         message: error.message || 'Não foi possível carregar os empréstimos.',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -183,6 +187,36 @@ export default function BookLendingPage() {
       });
       setIsModalOpen(false);
       setSelectedLoan(null);
+    }
+  };
+
+  const handleUpdateStatusToDevolvido = async (item: LentItem) => {
+    if (item.status === 'Devolvido') {
+      setToast({
+        id: Date.now(),
+        type: 'error',
+        title: 'Empréstimo já devolvido',
+        message: 'Este empréstimo já consta como devolvido.',
+      });
+      return;
+    }
+
+    try {
+      await loanService.returnLoan(item.id);
+      setToast({
+        id: Date.now(),
+        type: 'success',
+        title: 'Status atualizado',
+        message: `Empréstimo de "${item.bookTitle}" atualizado para Devolvido!`,
+      });
+      await loadData();
+    } catch (error: any) {
+      setToast({
+        id: Date.now(),
+        type: 'error',
+        title: 'Erro ao atualizar',
+        message: error.message || 'Não foi possível atualizar o status do empréstimo.',
+      });
     }
   };
 
@@ -414,11 +448,13 @@ export default function BookLendingPage() {
 
       <LoansTable
         items={paginatedItems}
+        isLoading={isLoading}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
         onEdit={handleOpenEditModal}
-        onRenew={handleRenewLoan}
+        onUpdateStatus={handleUpdateStatusToDevolvido}
+        onRenew={handleUpdateStatusToDevolvido}
         onDelete={handleOpenDeleteModal}
       />
 

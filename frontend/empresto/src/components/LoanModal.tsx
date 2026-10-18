@@ -167,7 +167,7 @@ export default function LoanModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-visible animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between px-8 pt-6 pb-4 border-b border-gray-100">
           <h3 className="text-xl font-semibold text-gray-800 text-center w-full">
             {mode === 'delete'

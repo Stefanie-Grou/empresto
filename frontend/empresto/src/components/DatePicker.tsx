@@ -60,6 +60,7 @@ export default function DatePicker({
   placeholder = 'DD/MM/AAAA',
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState<'bottom' | 'top'>('bottom');
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedDate = parseDate(value);
@@ -67,6 +68,20 @@ export default function DatePicker({
 
   const [viewYear, setViewYear] = useState(selectedDate ? selectedDate.year : today.getFullYear());
   const [viewMonth, setViewMonth] = useState(selectedDate ? selectedDate.month : today.getMonth());
+
+  const handleToggle = () => {
+    if (disabled) return;
+    if (!isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      if (spaceBelow < 320 && rect.top > spaceBelow) {
+        setPosition('top');
+      } else {
+        setPosition('bottom');
+      }
+    }
+    setIsOpen((prev) => !prev);
+  };
 
   useEffect(() => {
     if (selectedDate) {
@@ -177,7 +192,7 @@ export default function DatePicker({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setIsOpen((prev) => !prev)}
+        onClick={handleToggle}
         className={`w-full px-3 py-2.5 bg-gray-100/80 rounded-xl text-xs text-gray-800 outline-none flex items-center justify-between transition-all ${
           error
             ? 'border border-red-500 bg-red-50/30'
@@ -195,7 +210,11 @@ export default function DatePicker({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-2xl shadow-xl shadow-gray-200/80 border border-gray-100 p-4 w-72 animate-in fade-in zoom-in-95 duration-150">
+        <div
+          className={`absolute right-0 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-72 animate-in fade-in zoom-in-95 duration-150 ${
+            position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
+          }`}
+        >
           <div className="flex items-center justify-between pb-3 border-b border-gray-100">
             <button
               type="button"

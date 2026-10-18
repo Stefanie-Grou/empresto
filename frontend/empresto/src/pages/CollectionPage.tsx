@@ -28,6 +28,7 @@ const defaultFilters: FilterState = {
 
 export default function CollectionPage() {
   const [items, setItems] = useState<InventoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
@@ -39,6 +40,7 @@ export default function CollectionPage() {
   const itemsPerPage = 5;
 
   const loadItems = async () => {
+    setIsLoading(true);
     try {
       const data = await inventoryService.getAll();
       setItems(data);
@@ -49,6 +51,8 @@ export default function CollectionPage() {
         title: 'Erro ao carregar acervo',
         message: error.message || 'Não foi possível carregar os itens do acervo.',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -345,6 +349,7 @@ export default function CollectionPage() {
 
       <ItemsTable
         items={paginatedItems}
+        isLoading={isLoading}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
