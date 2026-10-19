@@ -4,6 +4,7 @@ export interface LentItem {
   bookAuthor: string;
   coverUrl?: string;
   studentName: string;
+  personType?: 'Aluno' | 'Professor' | 'Funcionário' | string;
   studentClass?: string; 
   dueDate: string;     
   status: 'Pendente' | 'Atrasado' | 'Devolvido' | string;

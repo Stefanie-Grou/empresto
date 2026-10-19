@@ -128,6 +128,7 @@ export default function BookLendingPage() {
       } else if (modalMode === 'edit' && selectedLoan) {
         await loanService.update(selectedLoan.id, {
           nomeAluno: data.studentName,
+          tipoPessoa: data.personType,
           turma: data.studentClass,
           livroId: data.bookId,
           prazoDevolucao: data.dueDate,
@@ -142,6 +143,7 @@ export default function BookLendingPage() {
       } else {
         await loanService.create({
           nomeAluno: data.studentName,
+          tipoPessoa: data.personType,
           turma: data.studentClass,
           livroId: data.bookId,
           prazoDevolucao: data.dueDate,
@@ -230,6 +232,7 @@ export default function BookLendingPage() {
         item.bookTitle.toLowerCase().includes(term) ||
         item.bookAuthor.toLowerCase().includes(term) ||
         item.studentName.toLowerCase().includes(term) ||
+        (item.personType && item.personType.toLowerCase().includes(term)) ||
         (item.studentClass && item.studentClass.toLowerCase().includes(term)) ||
         String(item.id).toLowerCase().includes(term);
 
@@ -406,7 +409,7 @@ export default function BookLendingPage() {
               >
                 <option value="dueDate_asc">Prazo mais próximo</option>
                 <option value="dueDate_desc">Prazo mais distante</option>
-                <option value="student_asc">Aluno (A - Z)</option>
+                <option value="student_asc">Nome (A - Z)</option>
                 <option value="book_asc">Livro (A - Z)</option>
               </select>
               <Icon

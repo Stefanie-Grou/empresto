@@ -4,6 +4,8 @@ import { formatTitleCase } from '../utils/textUtils.js';
 export interface NovoEmprestimoDTO {
   nomeAluno?: string;
   studentName?: string;
+  tipoPessoa?: string;
+  personType?: string;
   turma?: string;
   studentClass?: string;
   livroId?: number;
@@ -15,6 +17,8 @@ export interface NovoEmprestimoDTO {
 export interface AtualizarEmprestimoDTO {
   nomeAluno?: string;
   studentName?: string;
+  tipoPessoa?: string;
+  personType?: string;
   turma?: string;
   studentClass?: string;
   livroId?: number;
@@ -48,6 +52,7 @@ export class EmprestimoService {
         l.quantidade_disponivel,
         e.id_pessoa,
         p.nome as pessoa_nome,
+        p.tipo_pessoa as pessoa_tipo,
         p.turma as pessoa_turma,
         e.data_emprestimo,
         e.prazo_devolucao,
@@ -63,6 +68,7 @@ export class EmprestimoService {
       query += ` WHERE LOWER(l.titulo) LIKE $1 
                  OR LOWER(l.autor) LIKE $1 
                  OR LOWER(p.nome) LIKE $1 
+                 OR LOWER(COALESCE(p.tipo_pessoa, '')) LIKE $1
                  OR LOWER(COALESCE(p.turma, '')) LIKE $1 
                  OR CAST(e.id_emprestimo AS TEXT) LIKE $1`;
       params.push(`%${busca.toLowerCase().trim()}%`);
@@ -107,6 +113,8 @@ export class EmprestimoService {
         studentId: row.id_pessoa,
         id_pessoa: row.id_pessoa,
         studentName: row.pessoa_nome,
+        personType: row.pessoa_tipo || 'Aluno',
+        tipoPessoa: row.pessoa_tipo || 'Aluno',
         studentClass: (row.pessoa_turma || '').replace(/\uFFFD/g, 'º'),
         turma: (row.pessoa_turma || '').replace(/\uFFFD/g, 'º'),
         borrowDate: row.data_emprestimo,
@@ -140,6 +148,7 @@ export class EmprestimoService {
         l.autor as livro_autor,
         e.id_pessoa,
         p.nome as pessoa_nome,
+        p.tipo_pessoa as pessoa_tipo,
         p.turma as pessoa_turma,
         e.data_emprestimo,
         e.prazo_devolucao,
@@ -191,6 +200,8 @@ export class EmprestimoService {
       studentId: row.id_pessoa,
       id_pessoa: row.id_pessoa,
       studentName: row.pessoa_nome,
+      personType: row.pessoa_tipo || 'Aluno',
+      tipoPessoa: row.pessoa_tipo || 'Aluno',
       studentClass: (row.pessoa_turma || '').replace(/\uFFFD/g, 'º'),
       turma: (row.pessoa_turma || '').replace(/\uFFFD/g, 'º'),
       borrowDate: row.data_emprestimo,
@@ -204,6 +215,8 @@ export class EmprestimoService {
 
   public async registrar(dados: NovoEmprestimoDTO) {
     const nomeAluno = formatTitleCase((dados.nomeAluno || dados.studentName || '').trim());
+    const tipoPessoaInput = (dados.tipoPessoa || dados.personType || 'Aluno').trim();
+    const tipoPessoa = ['Aluno', 'Professor', 'Funcionário'].includes(tipoPessoaInput) ? tipoPessoaInput : 'Aluno';
     const turma = (dados.turma || dados.studentClass || '').replace(/\uFFFD/g, 'º').trim();
     const livroIdRaw = dados.livroId !== undefined ? dados.livroId : dados.bookId;
     const livroId = Number(livroIdRaw);
@@ -256,13 +269,14 @@ export class EmprestimoService {
 
     if (pessoaRes.rows.length > 0) {
       idPessoa = pessoaRes.rows[0].id_pessoa;
-      if (turma) {
-        await pool.query('UPDATE pessoa SET turma = $1 WHERE id_pessoa = $2', [turma, idPessoa]);
-      }
+      await pool.query(
+        'UPDATE pessoa SET turma = COALESCE(NULLIF($1, \'\'), turma), tipo_pessoa = $2 WHERE id_pessoa = $3',
+        [turma || null, tipoPessoa, idPessoa]
+      );
     } else {
       const novaPessoa = await pool.query(
         'INSERT INTO pessoa (nome, tipo_pessoa, turma) VALUES ($1, $2, $3) RETURNING id_pessoa',
-        [nomeAluno, 'Aluno', turma || null]
+        [nomeAluno, tipoPessoa, turma || null]
       );
       idPessoa = novaPessoa.rows[0].id_pessoa;
     }
@@ -307,6 +321,8 @@ export class EmprestimoService {
     const nomeAluno = (dados.nomeAluno || dados.studentName || '').trim()
       ? formatTitleCase((dados.nomeAluno || dados.studentName || '').trim())
       : '';
+    const tipoPessoaInput = (dados.tipoPessoa || dados.personType || '').trim();
+    const tipoPessoa = ['Aluno', 'Professor', 'Funcionário'].includes(tipoPessoaInput) ? tipoPessoaInput : undefined;
     const turma = (dados.turma || dados.studentClass || '').replace(/\uFFFD/g, 'º').trim();
     const livroIdRaw = dados.livroId !== undefined ? dados.livroId : dados.bookId;
     const novoLivroId = livroIdRaw ? Number(livroIdRaw) : emprestimoAtual.id_livro;
@@ -314,11 +330,14 @@ export class EmprestimoService {
 
     if (nomeAluno) {
       await pool.query(
-        'UPDATE pessoa SET nome = $1, turma = COALESCE(NULLIF($2, \'\'), turma) WHERE id_pessoa = $3',
-        [nomeAluno, turma, emprestimoAtual.id_pessoa]
+        'UPDATE pessoa SET nome = $1, turma = COALESCE(NULLIF($2, \'\'), turma), tipo_pessoa = COALESCE($3, tipo_pessoa) WHERE id_pessoa = $4',
+        [nomeAluno, turma, tipoPessoa || null, emprestimoAtual.id_pessoa]
       );
-    } else if (turma) {
-      await pool.query('UPDATE pessoa SET turma = $1 WHERE id_pessoa = $2', [turma, emprestimoAtual.id_pessoa]);
+    } else if (turma || tipoPessoa) {
+      await pool.query(
+        'UPDATE pessoa SET turma = COALESCE(NULLIF($1, \'\'), turma), tipo_pessoa = COALESCE($2, tipo_pessoa) WHERE id_pessoa = $3',
+        [turma, tipoPessoa || null, emprestimoAtual.id_pessoa]
+      );
     }
 
     const wasDevolvido = emprestimoAtual.devolucao && emprestimoAtual.devolucao.toLowerCase().includes('feita') && !emprestimoAtual.devolucao.toLowerCase().includes('não');
@@ -335,7 +354,20 @@ export class EmprestimoService {
         }
       } else {
         newDevolucao = 'Não feita';
-        newAtraso = statusInput === 'atrasado' ? 'Sim' : 'Não';
+        if (statusInput === 'atrasado') {
+          const finalPrazo = prazoRaw ? parseDateInput(prazoRaw) : emprestimoAtual.prazo_devolucao;
+          const prazoDate = new Date(finalPrazo);
+          prazoDate.setHours(23, 59, 59, 999);
+          const hoje = new Date();
+          if (prazoDate >= hoje) {
+            const error: any = new Error('Não é possível definir como Atrasado pois o prazo de devolução ainda não venceu.');
+            error.statusCode = 400;
+            throw error;
+          }
+          newAtraso = 'Sim';
+        } else {
+          newAtraso = 'Não';
+        }
         if (wasDevolvido) {
           await pool.query('UPDATE livro SET quantidade_disponivel = GREATEST(0, quantidade_disponivel - 1) WHERE id_livro = $1', [emprestimoAtual.id_livro]);
         }

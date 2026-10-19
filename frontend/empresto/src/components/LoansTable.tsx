@@ -54,7 +54,8 @@ const getStatusColor = (status: string) => {
               <tr className="text-xs uppercase font-semibold text-medium-gray border-b border-100-gray">
                 <th className="pb-4 font-medium text-center">CÓDIGO</th>
                 <th className="pb-4 font-medium text-left">LIVRO</th>
-                <th className="pb-4 font-medium text-left">ALUNO</th>
+                <th className="pb-4 font-medium text-left">NOME</th>
+                <th className="pb-4 font-medium text-center">TIPO</th>
                 <th className="pb-4 font-medium text-center">TURMA</th>
                 <th className="pb-4 font-medium text-center">PRAZO</th>
                 <th className="pb-4 font-medium text-center">STATUS</th>
@@ -65,7 +66,7 @@ const getStatusColor = (status: string) => {
             <tbody className="divide-y divide-gray-50">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-20 text-center">
+                  <td colSpan={8} className="py-20 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" style={{ animationDelay: '-0.3s' }} />
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" style={{ animationDelay: '-0.15s' }} />
@@ -75,7 +76,7 @@ const getStatusColor = (status: string) => {
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-xs text-gray-400">
+                  <td colSpan={8} className="py-16 text-center text-xs text-gray-400">
                     Nenhum empréstimo encontrado.
                   </td>
                 </tr>
@@ -113,6 +114,10 @@ const getStatusColor = (status: string) => {
 
                     <td className="py-3.5 text-gray-800 font-medium">
                       {item.studentName}
+                    </td>
+
+                    <td className="py-3.5 text-center text-gray-600 font-medium">
+                      {item.personType || 'Aluno'}
                     </td>
 
                     <td className="py-3.5 text-center text-gray-600">

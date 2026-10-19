@@ -7,6 +7,7 @@ import DatePicker from './DatePicker';
 export interface LoanModalData {
   id?: string | number;
   studentName: string;
+  personType?: 'Aluno' | 'Professor' | 'Funcionário' | string;
   studentClass: string;
   bookId: number;
   dueDate: string;
@@ -73,6 +74,7 @@ export default function LoanModal({
   books = [],
 }: LoanModalProps) {
   const [studentName, setStudentName] = useState('');
+  const [personType, setPersonType] = useState<'Aluno' | 'Professor' | 'Funcionário'>('Aluno');
   const [selectedGrade, setSelectedGrade] = useState('');
   const [selectedLetter, setSelectedLetter] = useState('');
   const [bookId, setBookId] = useState<number>(0);
@@ -85,6 +87,8 @@ export default function LoanModal({
   useEffect(() => {
     if (initialData) {
       setStudentName(initialData.studentName || '');
+      const rawType = (initialData.personType as any) || (initialData as any).tipoPessoa || 'Aluno';
+      setPersonType(['Aluno', 'Professor', 'Funcionário'].includes(rawType) ? rawType : 'Aluno');
       const parsed = parseClassString(initialData.studentClass || '');
       setSelectedGrade(parsed.grade);
       setSelectedLetter(parsed.letter);
@@ -101,6 +105,7 @@ export default function LoanModal({
       setStatus((initialData.status as any) || 'Pendente');
     } else {
       setStudentName('');
+      setPersonType('Aluno');
       setSelectedGrade('');
       setSelectedLetter('');
       setBookId(books.length > 0 ? Number(books[0].id) : 0);
@@ -125,12 +130,26 @@ export default function LoanModal({
 
   if (!isOpen) return null;
 
+  const isPastDue = (dateStr: string) => {
+    if (!dateStr) return false;
+    const clean = dateStr.includes('/') ? parseToIso(dateStr) : dateStr;
+    const parts = clean.split('-');
+    if (parts.length === 3) {
+      const due = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      due.setHours(23, 59, 59, 999);
+      return new Date() > due;
+    }
+    return false;
+  };
+
+  const canBeOverdue = isPastDue(dueDate);
+
   const validate = () => {
     if (isReadOnly) return true;
     const newErrors: { studentName?: string; bookId?: string; dueDate?: string } = {};
 
     if (!studentName.trim()) {
-      newErrors.studentName = 'O nome do aluno é obrigatório.';
+      newErrors.studentName = 'O nome é obrigatório.';
     }
 
     if (!bookId || bookId <= 0) {
@@ -139,6 +158,8 @@ export default function LoanModal({
 
     if (!dueDate) {
       newErrors.dueDate = 'Informe a data limite de devolução.';
+    } else if (status === 'Atrasado' && !canBeOverdue) {
+      newErrors.dueDate = 'A data de devolução ainda não venceu para definir como atrasado.';
     }
 
     setErrors(newErrors);
@@ -149,15 +170,18 @@ export default function LoanModal({
     e.preventDefault();
     if (!validate()) return;
 
-    const studentClass = selectedGrade
-      ? selectedLetter
-        ? `${selectedGrade} ${selectedLetter}`
-        : selectedGrade
-      : '';
+    const studentClass = personType === 'Aluno'
+      ? selectedGrade
+        ? selectedLetter
+          ? `${selectedGrade} ${selectedLetter}`
+          : selectedGrade
+        : ''
+      : '-';
 
     onSave({
       id: initialData?.id,
       studentName: formatTitleCase(studentName.trim()),
+      personType,
       studentClass,
       bookId,
       dueDate,
@@ -195,7 +219,7 @@ export default function LoanModal({
                   value={studentName}
                   onChange={(e) => setStudentName(formatTitleCase(e.target.value, true))}
                   onBlur={() => setStudentName((prev) => formatTitleCase(prev.trim()))}
-                  placeholder="Ana Silva de Souza"
+                  placeholder="Nome da pessoa"
                   disabled={isReadOnly}
                   className={`w-full px-4 py-2.5 bg-gray-100/80 rounded-xl text-sm text-gray-800 outline-none transition-all ${
                     errors.studentName
@@ -209,64 +233,25 @@ export default function LoanModal({
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 w-48">
-              <label className="text-sm font-semibold text-gray-800 shrink-0">Turma</label>
-              <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                <div className="relative flex-1 min-w-0">
-                  <select
-                    value={selectedGrade}
-                    onChange={(e) => setSelectedGrade(e.target.value)}
-                    disabled={isReadOnly}
-                    className={`w-full px-2 py-2.5 bg-gray-100/80 rounded-xl text-xs text-gray-800 outline-none appearance-none pr-5 transition-all truncate ${
-                      isReadOnly ? 'cursor-not-allowed opacity-80' : 'focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer'
-                    }`}
-                  >
-                    <option value="">Série...</option>
-                    <optgroup label="Fundamental">
-                      <option value="1º Ano">1º Ano</option>
-                      <option value="2º Ano">2º Ano</option>
-                      <option value="3º Ano">3º Ano</option>
-                      <option value="4º Ano">4º Ano</option>
-                      <option value="5º Ano">5º Ano</option>
-                      <option value="6º Ano">6º Ano</option>
-                      <option value="7º Ano">7º Ano</option>
-                      <option value="8º Ano">8º Ano</option>
-                      <option value="9º Ano">9º Ano</option>
-                    </optgroup>
-                    <optgroup label="Ensino Médio">
-                      <option value="1º EM">1º EM</option>
-                      <option value="2º EM">2º EM</option>
-                      <option value="3º EM">3º EM</option>
-                    </optgroup>
-                  </select>
-                  <Icon
-                    icon="lucide:chevron-down"
-                    className="w-3 h-3 text-gray-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none"
-                  />
-                </div>
-
-                <div className="relative w-14 shrink-0">
-                  <select
-                    value={selectedLetter}
-                    onChange={(e) => setSelectedLetter(e.target.value)}
-                    disabled={isReadOnly}
-                    className={`w-full px-1.5 py-2.5 bg-gray-100/80 rounded-xl text-xs text-center text-gray-800 outline-none appearance-none pr-4 transition-all ${
-                      isReadOnly ? 'cursor-not-allowed opacity-80' : 'focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer'
-                    }`}
-                  >
-                    <option value="">-</option>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                    <option value="D">D</option>
-                    <option value="E">E</option>
-                    <option value="F">F</option>
-                  </select>
-                  <Icon
-                    icon="lucide:chevron-down"
-                    className="w-3 h-3 text-gray-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"
-                  />
-                </div>
+            <div className="flex items-center gap-2.5 w-44">
+              <label className="text-sm font-semibold text-gray-800 shrink-0">Tipo</label>
+              <div className="relative flex-1">
+                <select
+                  value={personType}
+                  onChange={(e) => setPersonType(e.target.value as any)}
+                  disabled={isReadOnly}
+                  className={`w-full px-3 py-2.5 bg-gray-100/80 rounded-xl text-xs text-gray-800 outline-none appearance-none pr-6 transition-all ${
+                    isReadOnly ? 'cursor-not-allowed opacity-80' : 'focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer font-medium'
+                  }`}
+                >
+                  <option value="Aluno">Aluno</option>
+                  <option value="Professor">Professor</option>
+                  <option value="Funcionário">Funcionário</option>
+                </select>
+                <Icon
+                  icon="lucide:chevron-down"
+                  className="w-3.5 h-3.5 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"
+                />
               </div>
             </div>
           </div>
@@ -301,13 +286,85 @@ export default function LoanModal({
                 {errors.bookId && <span className="text-xs text-red-500 mt-1 block">{errors.bookId}</span>}
               </div>
             </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="flex items-center gap-3 flex-1">
+              <label className="w-14 text-sm font-semibold text-gray-800 shrink-0">Turma</label>
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <div className="relative flex-1 min-w-0">
+                  <select
+                    value={selectedGrade}
+                    onChange={(e) => setSelectedGrade(e.target.value)}
+                    disabled={isReadOnly || personType !== 'Aluno'}
+                    className={`w-full px-2 py-2.5 bg-gray-100/80 rounded-xl text-xs text-gray-800 outline-none appearance-none pr-5 transition-all truncate ${
+                      isReadOnly || personType !== 'Aluno'
+                        ? 'cursor-not-allowed opacity-60'
+                        : 'focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer'
+                    }`}
+                  >
+                    <option value="">{personType === 'Aluno' ? 'Série...' : 'Não aplicável'}</option>
+                    <optgroup label="Fundamental">
+                      <option value="1º Ano">1º Ano</option>
+                      <option value="2º Ano">2º Ano</option>
+                      <option value="3º Ano">3º Ano</option>
+                      <option value="4º Ano">4º Ano</option>
+                      <option value="5º Ano">5º Ano</option>
+                      <option value="6º Ano">6º Ano</option>
+                      <option value="7º Ano">7º Ano</option>
+                      <option value="8º Ano">8º Ano</option>
+                      <option value="9º Ano">9º Ano</option>
+                    </optgroup>
+                    <optgroup label="Ensino Médio">
+                      <option value="1º EM">1º EM</option>
+                      <option value="2º EM">2º EM</option>
+                      <option value="3º EM">3º EM</option>
+                    </optgroup>
+                  </select>
+                  <Icon
+                    icon="lucide:chevron-down"
+                    className="w-3 h-3 text-gray-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                  />
+                </div>
+
+                <div className="relative w-14 shrink-0">
+                  <select
+                    value={selectedLetter}
+                    onChange={(e) => setSelectedLetter(e.target.value)}
+                    disabled={isReadOnly || personType !== 'Aluno'}
+                    className={`w-full px-1.5 py-2.5 bg-gray-100/80 rounded-xl text-xs text-center text-gray-800 outline-none appearance-none pr-4 transition-all ${
+                      isReadOnly || personType !== 'Aluno'
+                        ? 'cursor-not-allowed opacity-60'
+                        : 'focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer'
+                    }`}
+                  >
+                    <option value="">-</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                  </select>
+                  <Icon
+                    icon="lucide:chevron-down"
+                    className="w-3 h-3 text-gray-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"
+                  />
+                </div>
+              </div>
+            </div>
 
             <div className="flex items-center gap-2.5 w-48">
               <label className="text-sm font-semibold text-gray-800 shrink-0">Prazo</label>
               <div className="flex-1">
                 <DatePicker
                   value={dueDate}
-                  onChange={(iso) => setDueDate(iso)}
+                  onChange={(iso) => {
+                    setDueDate(iso);
+                    if (status === 'Atrasado' && !isPastDue(iso)) {
+                      setStatus('Pendente');
+                    }
+                  }}
                   disabled={isReadOnly}
                   error={errors.dueDate}
                 />
@@ -333,11 +390,15 @@ export default function LoanModal({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setStatus('Atrasado')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
-                    status === 'Atrasado'
-                      ? 'bg-red-100 text-red-800 font-semibold ring-1 ring-red-300'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  disabled={!canBeOverdue}
+                  onClick={() => canBeOverdue && setStatus('Atrasado')}
+                  title={!canBeOverdue ? 'A data de devolução ainda não venceu' : ''}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
+                    !canBeOverdue
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                      : status === 'Atrasado'
+                      ? 'bg-red-100 text-red-800 font-semibold ring-1 ring-red-300 cursor-pointer'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer'
                   }`}
                 >
                   Atrasado
@@ -363,7 +424,7 @@ export default function LoanModal({
                 <Icon icon="lucide:alert-triangle" className="w-5 h-5 text-red-500" />
               </div>
               <p className="text-sm font-medium text-gray-700 leading-snug">
-                Confirma a exclusão deste registro de empréstimo do livro "{initialData?.bookTitle}" para o aluno "{initialData?.studentName}"?
+                Confirma a exclusão deste registro de empréstimo do livro "{initialData?.bookTitle}" para "{initialData?.studentName}"?
               </p>
             </div>
           )}

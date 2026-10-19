@@ -2,6 +2,7 @@ import type { LentItem } from '../interfaces/LentItem';
 
 export interface LoanPayload {
   nomeAluno: string;
+  tipoPessoa?: string;
   turma?: string;
   livroId: number;
   prazoDevolucao: string;
@@ -9,6 +10,7 @@ export interface LoanPayload {
 
 export interface UpdateLoanPayload {
   nomeAluno?: string;
+  tipoPessoa?: string;
   turma?: string;
   livroId?: number;
   prazoDevolucao?: string;
@@ -42,6 +44,7 @@ export const loanService = {
       bookAuthor: item.bookAuthor ?? item.livro_autor,
       coverUrl: item.coverUrl,
       studentName: item.studentName ?? item.pessoa_nome,
+      personType: item.personType ?? item.tipoPessoa ?? item.pessoa_tipo ?? item.tipo_pessoa ?? 'Aluno',
       studentClass: item.studentClass ?? item.pessoa_turma ?? '',
       borrowDate: item.borrowDate,
       dueDate: item.dueDate,
