@@ -1,96 +1,132 @@
-import type { LentItem } from '../interfaces/LentItem';
+// src/services/loanService.ts
 
-export interface LoanPayload {
-  nomeAluno: string;
-  tipoPessoa?: string;
-  turma?: string;
-  livroId: number;
-  prazoDevolucao: string;
-}
+import type { LentItem } from '../interfaces/LentItem';
+import { ENDPOINTS } from './apiConfig';
 
 export interface UpdateLoanPayload {
-  nomeAluno?: string;
-  tipoPessoa?: string;
-  turma?: string;
-  livroId?: number;
-  prazoDevolucao?: string;
-  status?: string;
+  acervoId: number;
+  nomeAluno: string;
+  serie: string;
+  dataDevolucaoPrevista: string;
 }
 
-const BASE_URL = 'http://localhost:8080/api/v1/emprestimos';
+export interface DeleteLoanPayload {
+  id: number | string;
+}
 
-async function handleResponse(response: Response, defaultError: string) {
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.erro || errorData?.mensagem || defaultError);
+function formatDateToISO(dateStr: string): string {
+  if (!dateStr) return '';
+  if (dateStr.includes('-')) return dateStr;
+  const parts = dateStr.split('/');
+  if (parts.length === 3) {
+    const [day, month, year] = parts;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   }
-  return response.json();
+  return dateStr;
+}
+
+export function addDaysToDate(dateStr: string, days: number = 7): string {
+  let date: Date;
+
+  if (dateStr.includes('/')) {
+    const [day, month, year] = dateStr.split('/').map(Number);
+    date = new Date(year, month - 1, day);
+  } else if (dateStr.includes('-')) {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    date = new Date(year, month - 1, day);
+  } else {
+    date = new Date();
+  }
+
+  date.setDate(date.getDate() + days);
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+export function toUpdateLoanPayload(item: LentItem, isRenew: boolean = false): UpdateLoanPayload {
+  const targetDate = isRenew ? addDaysToDate(item.dueDate, 7) : formatDateToISO(item.dueDate);
+
+  return {
+    acervoId: Number(item.id),
+    nomeAluno: item.studentName.trim(),
+    serie: item.studentClass.trim(),
+    dataDevolucaoPrevista: targetDate,
+  };
 }
 
 export const loanService = {
-  async getAll(search?: string, status?: string): Promise<LentItem[]> {
-    const params = new URLSearchParams();
-    if (search && search.trim()) params.append('busca', search.trim());
-    if (status && status !== 'all') params.append('status', status.trim());
+  async create(data: { acervoId: number; studentName: string; studentClass: string; dueDate: string }) {
+    const payload: CreateLoanPayload = {
+      acervoId: Number(data.acervoId),
+      nomeAluno: data.studentName.trim(),
+      serie: data.studentClass.trim(),
+      dataDevolucaoPrevista: formatDateToISO(data.dueDate),
+    };
 
-    const url = params.toString() ? `${BASE_URL}?${params.toString()}` : BASE_URL;
-    const response = await fetch(url);
-    const data = await handleResponse(response, 'Erro ao carregar empréstimos');
+    console.log(`[POST] Enviando para: ${ENDPOINTS.LOANS}`, payload);
 
-    return data.map((item: any) => ({
-      id: item.id_emprestimo ?? item.id,
-      bookId: item.bookId ?? item.id_livro,
-      bookTitle: item.bookTitle ?? item.livro_titulo,
-      bookAuthor: item.bookAuthor ?? item.livro_autor,
-      coverUrl: item.coverUrl,
-      studentName: item.studentName ?? item.pessoa_nome,
-      personType: item.personType ?? item.tipoPessoa ?? item.pessoa_tipo ?? item.tipo_pessoa ?? 'Aluno',
-      studentClass: item.studentClass ?? item.pessoa_turma ?? '',
-      borrowDate: item.borrowDate,
-      dueDate: item.dueDate,
-      rawDueDate: item.rawDueDate,
-      status: item.status || 'Pendente',
-    }));
-  },
-
-  async create(payload: LoanPayload) {
-    const response = await fetch(BASE_URL, {
+    const response = await fetch(ENDPOINTS.LOANS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    return handleResponse(response, 'Erro ao cadastrar empréstimo');
+
+    if (!response.ok) throw new Error('Erro ao registrar novo empréstimo');
+    return response.json();
   },
 
-  async update(id: string | number, payload: UpdateLoanPayload) {
-    const response = await fetch(`${BASE_URL}/${id}`, {
+  async update(id: string | number, data: LentItem) {
+    const payload = toUpdateLoanPayload(data, false);
+    const url = `${ENDPOINTS.LOANS}`;
+
+    console.log(`[PUT] Enviando para: ${url}`, payload);
+
+    const response = await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    return handleResponse(response, 'Erro ao atualizar empréstimo');
+
+    if (!response.ok) throw new Error('Erro ao atualizar registro de empréstimo');
+    return response.json();
   },
 
-  async renew(id: string | number, dias = 7) {
-    const response = await fetch(`${BASE_URL}/${id}/renovar`, {
+  async renew(id: string | number, data: LentItem) {
+    const payload = toUpdateLoanPayload(data, true);
+    const url = `${ENDPOINTS.LOANS}`;
+
+    console.log(`[RENEW] Enviando para: ${url}`, payload);
+
+    const response = await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dias }),
+      body: JSON.stringify(payload),
     });
-    return handleResponse(response, 'Erro ao renovar empréstimo');
-  },
 
-  async returnLoan(id: string | number) {
-    const response = await fetch(`${BASE_URL}/${id}/devolucao`, {
-      method: 'PUT',
-    });
-    return handleResponse(response, 'Erro ao registrar devolução');
+    if (!response.ok) throw new Error('Erro ao renovar empréstimo');
+    return response.json();
   },
 
   async delete(id: string | number) {
-    const response = await fetch(`${BASE_URL}/${id}`, {
+    const url = `${ENDPOINTS.LOANS}/${id}/devolucao`;
+
+    console.log(`[DELETE] Enviando requisição`);
+
+    const response = await fetch(url, {
       method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
-    return handleResponse(response, 'Erro ao excluir empréstimo');
+
+    if (!response.ok) {
+      throw new Error('Erro ao remover registro de empréstimo');
+    }
+
+    return response.json();
   },
 };
