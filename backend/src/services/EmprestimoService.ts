@@ -307,7 +307,7 @@ export class EmprestimoService {
     }
 
     const empRes = await pool.query(
-      'SELECT id_emprestimo, id_pessoa, id_livro, devolucao, prazo_devolucao FROM emprestimo WHERE id_emprestimo = $1',
+      'SELECT id_emprestimo, id_pessoa, id_livro, devolucao, atraso, prazo_devolucao FROM emprestimo WHERE id_emprestimo = $1',
       [id]
     );
 
@@ -341,8 +341,8 @@ export class EmprestimoService {
     }
 
     const wasDevolvido = emprestimoAtual.devolucao && emprestimoAtual.devolucao.toLowerCase().includes('feita') && !emprestimoAtual.devolucao.toLowerCase().includes('não');
-    let newDevolucao = emprestimoAtual.devolucao;
-    let newAtraso = emprestimoAtual.atraso;
+    let newDevolucao = emprestimoAtual.devolucao || 'Não feita';
+    let newAtraso = emprestimoAtual.atraso || 'Não';
 
     if (dados.status || dados.devolucao) {
       const statusInput = (dados.status || dados.devolucao || '').toLowerCase();
