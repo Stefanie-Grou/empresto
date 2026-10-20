@@ -55,7 +55,7 @@ export default function ItemsActionBar({
         <button
           type="button"
           onClick={onNewItemClick}
-          className="flex items-center gap-2 px-5 py-2.5 bg-emerald-900 hover:bg-emerald-950 text-white rounded-xl text-sm font-medium transition-colors cursor-pointer shrink-0"
+          className="flex items-center gap-2 px-5 py-2.5 green-button-with-hover shrink-0"
         >
           <Icon icon="lucide:plus" className="w-4 h-4" />
           <span>Novo item</span>

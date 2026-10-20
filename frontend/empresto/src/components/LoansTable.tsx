@@ -5,12 +5,10 @@ import Pagination from './Pagination';
 interface LoansTableProps {
   title?: string;
   items: LentItem[];
-  isLoading?: boolean;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
   onEdit?: (item: LentItem) => void;
-  onUpdateStatus?: (item: LentItem) => void;
   onRenew?: (item: LentItem) => void;
   onDelete?: (item: LentItem) => void;
 }
@@ -18,26 +16,24 @@ interface LoansTableProps {
 export default function LoansTable({
   title = 'Empréstimos recentes',
   items,
-  isLoading = false,
   currentPage,
   totalPages,
   onPageChange,
   onEdit,
-  onUpdateStatus,
   onRenew,
   onDelete,
 }: LoansTableProps) {
-const getStatusColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'atrasado':
-      return { dot: 'bg-red-500', text: 'text-red-700' };
-    case 'devolvido':
-      return { dot: 'bg-emerald-500', text: 'text-emerald-700' };
-    case 'pendente':
-    default:
-      return { dot: 'bg-amber-500', text: 'text-amber-700' };
-  }
-};
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'atrasado':
+        return { dot: 'bg-red-500', text: 'text-red-700' };
+      case 'devolvido':
+        return { dot: 'bg-emerald-500', text: 'text-emerald-700' };
+      case 'pendente':
+      default:
+        return { dot: 'bg-amber-500', text: 'text-amber-700' };
+    }
+  };
 
   return (
     <div className="bg-white-background border border-100-gray rounded-2xl p-6 shadow-xs w-full flex flex-col justify-between h-full">
@@ -53,9 +49,8 @@ const getStatusColor = (status: string) => {
             <thead>
               <tr className="text-xs uppercase font-semibold text-medium-gray border-b border-100-gray">
                 <th className="pb-4 font-medium text-center">CÓDIGO</th>
-                <th className="pb-4 font-medium text-left">LIVRO</th>
-                <th className="pb-4 font-medium text-left">NOME</th>
-                <th className="pb-4 font-medium text-center">TIPO</th>
+                <th className="pb-4 font-medium">LIVRO</th>
+                <th className="pb-4 font-medium">ALUNO</th>
                 <th className="pb-4 font-medium text-center">TURMA</th>
                 <th className="pb-4 font-medium text-center">PRAZO</th>
                 <th className="pb-4 font-medium text-center">STATUS</th>
@@ -64,29 +59,13 @@ const getStatusColor = (status: string) => {
             </thead>
 
             <tbody className="divide-y divide-gray-50">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="py-20 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" style={{ animationDelay: '-0.3s' }} />
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" style={{ animationDelay: '-0.15s' }} />
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" />
-                    </div>
-                  </td>
-                </tr>
-              ) : items.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-16 text-center text-xs text-gray-400">
-                    Nenhum empréstimo encontrado.
-                  </td>
-                </tr>
-              ) : (
-                items.map((item) => {
-                  const statusStyle = getStatusColor(item.status);
+              {items.map((item) => {
+                const statusStyle = getStatusColor(item.status);
 
-                  return (
-                    <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-3.5 text-center text-gray-600 font-medium">
+                return (
+                  <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                    {/* CÓDIGO */}
+                    <td className="py-3.5 pl-2 text-center text-gray-600 font-medium">
                       {item.id}
                     </td>
 
@@ -116,12 +95,8 @@ const getStatusColor = (status: string) => {
                       {item.studentName}
                     </td>
 
-                    <td className="py-3.5 text-center text-gray-600 font-medium">
-                      {item.personType || 'Aluno'}
-                    </td>
-
                     <td className="py-3.5 text-center text-gray-600">
-                      {item.studentClass ? item.studentClass.replace(/\uFFFD/g, 'º') : '-'}
+                      {item.studentClass || '-'}
                     </td>
 
                     <td className="py-3.5 text-center text-gray-600 font-medium">
@@ -137,7 +112,7 @@ const getStatusColor = (status: string) => {
                       </div>
                     </td>
 
-                    <td className="py-3.5 pr-2 text-center">
+                    <td className="py-3.5 pr-2 text-right">
                       <div className="flex items-center justify-center gap-2">
                         <button
                           type="button"
@@ -150,9 +125,9 @@ const getStatusColor = (status: string) => {
 
                         <button
                           type="button"
-                          onClick={() => (onUpdateStatus ? onUpdateStatus(item) : onRenew?.(item))}
-                          className="p-1.5 bg-sky-100/60 hover:bg-sky-200 text-sky-700 rounded-lg transition-colors cursor-pointer"
-                          title="Atualizar para Devolvido"
+                          onClick={() => onRenew?.(item)}
+                          className="p-1.5 gray-button-with-hover"
+                          title="Renovar"
                         >
                           <Icon icon="lucide:rotate-cw" className="w-3.5 h-3.5" />
                         </button>
@@ -161,7 +136,7 @@ const getStatusColor = (status: string) => {
                           type="button"
                           onClick={() => onDelete?.(item)}
                           className="p-1.5 bg-red-100/60 hover:bg-red-200 text-soft-red rounded-lg transition-colors cursor-pointer"
-                          title="Excluir"
+                          title="Excluir/Devolver"
                         >
                           <Icon icon="lucide:x" className="w-3.5 h-3.5" />
                         </button>
@@ -169,9 +144,8 @@ const getStatusColor = (status: string) => {
                     </td>
                   </tr>
                 );
-              })
-            )}
-          </tbody>
+              })}
+            </tbody>
           </table>
         </div>
       </div>
