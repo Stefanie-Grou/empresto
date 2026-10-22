@@ -16,6 +16,20 @@ export interface LoanFilterState {
   ordenacao: string;
 }
 
+export type FilterFieldType = 'select' | 'segmented';
+
+export interface FilterOption {
+  label: string;
+  value: string;
+}
+
+export interface FieldConfig<T> {
+  key: keyof T;
+  label: string;
+  type: FilterFieldType;
+  options: FilterOption[];
+}
+
 const LOAN_FILTER_FIELDS: FieldConfig<LoanFilterState>[] = [
   {
     key: 'status',
@@ -68,17 +82,57 @@ export default function BookLendingPage() {
   const [modalMode, setModalMode] = useState<'view' | 'edit' | 'delete'>('view');
 
   // Aplicar Filtro aos itens
+  function parseDueDate(dateStr: string): Date {
+    if (!dateStr) return new Date(0);
+    if (dateStr.includes('/')) {
+      const [day, month, year] = dateStr.split('/').map(Number);
+      return new Date(year, month - 1, day);
+    }
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+
   const filteredLentItems = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     return initialLentItems
       .filter((item) => {
+        // 1. Filtro de Status
         if (filters.status === 'em_dia' && item.status.toLowerCase() !== 'em dia') return false;
         if (filters.status === 'atrasado' && item.status.toLowerCase() !== 'atrasado') return false;
+
+        // 2. Filtro de Período
+        if (filters.periodo !== 'todos') {
+          const itemDate = parseDueDate(item.dueDate);
+          itemDate.setHours(0, 0, 0, 0);
+
+          const diffInDays = Math.ceil((itemDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+
+          if (filters.periodo === 'hoje' && diffInDays !== 0) return false;
+          if (filters.periodo === 'semana' && (diffInDays < 0 || diffInDays > 7)) return false;
+          if (filters.periodo === 'mes' && (diffInDays < 0 || diffInDays > 30)) return false;
+        }
+
         return true;
       })
       .sort((a, b) => {
+        // 3. Ordenação
         if (filters.ordenacao === 'nome_asc') {
           return a.studentName.localeCompare(b.studentName);
         }
+
+        const dateA = parseDueDate(a.dueDate).getTime();
+        const dateB = parseDueDate(b.dueDate).getTime();
+
+        if (filters.ordenacao === 'prazo_asc') {
+          return dateA - dateB; // Mais próximos do vencimento primeiro
+        }
+
+        if (filters.ordenacao === 'prazo_desc') {
+          return dateB - dateA; // Mais distantes primeiro
+        }
+
         return 0;
       });
   }, [initialLentItems, filters]);
