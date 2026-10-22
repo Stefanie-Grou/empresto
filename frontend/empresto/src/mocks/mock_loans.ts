@@ -8,7 +8,7 @@ export const MOCK_LOANS: LoanItem[] = [
     userName: 'Ana Martins',
     classGroup: '7B',
     userType: 'Aluno',
-    dueDate: '10/09/2026',
+    dueDate: '22/10/2026',
     itemType: 'Livro'
 
   },
@@ -19,7 +19,7 @@ export const MOCK_LOANS: LoanItem[] = [
     userName: 'Renato Dias',
     classGroup: '-',
     userType: 'Professor',
-    dueDate: '11/09/2027',
+    dueDate: '23/10/2026',
     itemType: 'Quadrinho'
   },
   {
