@@ -20,7 +20,6 @@ export default function QuickActions({ actions }: QuickActionsProps) {
   const navigate = useNavigate();
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
 
-  // Handler para criar o item no acervo via POST
   const handleSaveInventoryItem = async (data: Omit<InventoryItem, 'id' | 'available'>) => {
     try {
       await inventoryService.create(data);
@@ -31,7 +30,6 @@ export default function QuickActions({ actions }: QuickActionsProps) {
     }
   };
 
-  // Ações padrão com handlers pré-configurados
   const defaultActions: ActionItem[] = [
     {
       id: '1',

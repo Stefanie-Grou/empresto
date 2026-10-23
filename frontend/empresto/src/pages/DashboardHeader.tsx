@@ -6,7 +6,6 @@ import { loanService } from '../services/loanService';
 export default function DashboardHeader() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Handler para cadastrar o empréstimo a partir da Home/Dashboard
   const handleCreateLoan = async (formData: CreateLoanFormData) => {
     try {
       await loanService.create({

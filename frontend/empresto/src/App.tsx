@@ -6,9 +6,11 @@ import DashboardPage from './pages/DashboardPage';
 import CollectionPage from './pages/CollectionPage';
 import BookLendingPage from './pages/BookLendingPage';
 import ReservationPage from './pages/ReservationsPage';
+import ProtectedRoute from './ProtectedRoute';
 
 export default function App() {
   return (
+
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<AuthPage initialMode="login" />} />
@@ -24,6 +26,30 @@ export default function App() {
           <Route path="/relatorios" element={<div>Página de Relatórios</div>} />
         </Route>
       </Routes>
+
     </BrowserRouter>
+
+/* {DESCOMENTAR ESTE TRECHO APÓS TERMINAR O DESENVOLVIMENTO DO FRONTEND}
+        <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<AuthPage initialMode="login" />} />
+        <Route path="/cadastro" element={<AuthPage initialMode="register" />} />
+        <Route path="/esqueceu-senha" element={<AuthPage initialMode="forgot" />} />
+        <Route path="/redefinir-senha" element={<AuthPage initialMode="reset" />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/acervo" element={<CollectionPage />} />
+            <Route path="/emprestimos" element={<BookLendingPage />} />
+            <Route path="/reservas" element={<ReservationPage />} />
+            <Route path="/relatorios" element={<div>Página de Relatórios</div>} />
+          </Route>
+        </Route>
+      </Routes>
+    </BrowserRouter>
+
+    */
+
   );
 }

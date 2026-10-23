@@ -1,5 +1,3 @@
-// src/services/loanService.ts
-
 import type { LentItem } from '../interfaces/LentItem';
 import { ENDPOINTS } from './apiConfig';
 

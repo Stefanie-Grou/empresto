@@ -8,6 +8,7 @@ interface LoanModalProps {
   onClose: () => void;
   onSave: (data: LentItem) => void;
   onRenew?: (item: LentItem) => void;
+  onReturn?: (item: LentItem) => void; // Nova prop para lidar com a ação de devolução
   loan: LentItem | null;
   title?: string;
   isReadOnly?: boolean;
@@ -20,6 +21,7 @@ export default function LoanModal({
   onClose,
   onSave,
   onRenew,
+  onReturn,
   loan,
   title = 'Visualizar Empréstimo',
   isReadOnly = true,
@@ -42,10 +44,7 @@ export default function LoanModal({
 
   const isAtrasado = formData.status.toLowerCase() === 'atrasado';
 
-  // O botão principal (Salvar / Excluir) só deve aparecer se:
-  // 1. Tiver uma mensagem de aviso (como no modal de exclusão)
-  // 2. OU se NÃO for apenas modo de leitura (modo edição)
-  const shouldShowSubmitButton = Boolean(warningMessage) || !isReadOnly;
+  const shouldShowSubmitButton = Boolean(warningMessage) || !isReadOnly || submitLabel === 'Devolver';
 
   return (
     <BaseModal
@@ -54,13 +53,16 @@ export default function LoanModal({
       title={title}
       onSubmit={(e) => {
         e.preventDefault();
-        onSave(formData);
+        if (submitLabel === 'Devolver' && onReturn) {
+          onReturn(formData);
+        } else {
+          onSave(formData);
+        }
       }}
       warningMessage={warningMessage}
       submitLabel={shouldShowSubmitButton ? submitLabel : undefined}
       extraActions={
-        // O botão Renovar só aparece quando estiver em modo leitura E sem mensagem de exclusão/aviso
-        !warningMessage && isReadOnly && (
+        !warningMessage && isReadOnly && submitLabel !== 'Devolver' && (
           <button
             type="button"
             onClick={() => {

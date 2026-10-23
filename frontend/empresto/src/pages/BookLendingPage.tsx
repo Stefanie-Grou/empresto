@@ -67,7 +67,6 @@ const LOAN_FILTER_FIELDS: FieldConfig<LoanFilterState>[] = [
 export default function BookLendingPage() {
   const initialLentItems = useMemo(() => MOCK_LOANS.map(toLentItem), []);
 
-  // Controladores do Filtro
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<LoanFilterState>({
     status: 'todos',
@@ -75,13 +74,11 @@ export default function BookLendingPage() {
     ordenacao: 'prazo_asc',
   });
 
-  // Modais
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<LentItem | null>(null);
-  const [modalMode, setModalMode] = useState<'view' | 'edit' | 'delete'>('view');
+  const [modalMode, setModalMode] = useState<'view' | 'edit' | 'cancel'>('view');
 
-  // Aplicar Filtro aos itens
   function parseDueDate(dateStr: string): Date {
     if (!dateStr) return new Date(0);
     if (dateStr.includes('/')) {
@@ -98,11 +95,9 @@ export default function BookLendingPage() {
 
     return initialLentItems
       .filter((item) => {
-        // 1. Filtro de Status
         if (filters.status === 'em_dia' && item.status.toLowerCase() !== 'em dia') return false;
         if (filters.status === 'atrasado' && item.status.toLowerCase() !== 'atrasado') return false;
 
-        // 2. Filtro de Período
         if (filters.periodo !== 'todos') {
           const itemDate = parseDueDate(item.dueDate);
           itemDate.setHours(0, 0, 0, 0);
@@ -117,7 +112,6 @@ export default function BookLendingPage() {
         return true;
       })
       .sort((a, b) => {
-        // 3. Ordenação
         if (filters.ordenacao === 'nome_asc') {
           return a.studentName.localeCompare(b.studentName);
         }
@@ -137,7 +131,6 @@ export default function BookLendingPage() {
       });
   }, [initialLentItems, filters]);
 
-  // Paginação e Busca
   const {
     searchTerm,
     currentPage,
@@ -196,7 +189,7 @@ export default function BookLendingPage() {
         }}
         onDelete={(item) => {
           setSelectedLoan(item);
-          setModalMode('delete');
+          setModalMode('cancel'); 
           setIsModalOpen(true);
         }}
         onReturn={(item) => loanService.returnLoan(item.id)}
@@ -207,7 +200,7 @@ export default function BookLendingPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={(data) => {
-          if (modalMode === 'delete') loanService.delete(data.id);
+          if (modalMode === 'cancel') loanService.delete(data.id);
           else if (modalMode === 'edit') loanService.update(data.id, data);
           setIsModalOpen(false);
         }}
@@ -217,6 +210,19 @@ export default function BookLendingPage() {
         }}
         loan={selectedLoan}
         isReadOnly={modalMode !== 'edit'}
+        title={
+          modalMode === 'cancel'
+            ? 'Cancelar Empréstimo'
+            : modalMode === 'edit'
+            ? 'Editar Empréstimo'
+            : 'Visualizar Empréstimo'
+        }
+        warningMessage={
+          modalMode === 'cancel'
+            ? 'Tem certeza de que deseja finalizar este empréstimo?'
+            : undefined
+        }
+        submitLabel={modalMode === 'cancel' ? 'Devolver' : 'Salvar'}
       />
 
       <CreateLoanModal

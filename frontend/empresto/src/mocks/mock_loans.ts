@@ -10,7 +10,6 @@ export const MOCK_LOANS: LoanItem[] = [
     userType: 'Aluno',
     dueDate: '22/10/2026',
     itemType: 'Livro'
-
   },
   {
     id: '2',
