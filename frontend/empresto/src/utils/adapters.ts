@@ -40,6 +40,7 @@ export function toLentItem(loan: LoanItem): LentItem {
 
   return {
     id: loan.id,
+    acervoId: loan.acervoId,
     bookTitle: loan.bookTitle,
     bookAuthor: loan.bookAuthor,
     coverUrl: loan.coverUrl,

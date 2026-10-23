@@ -11,6 +11,7 @@ import ReservationModal from '../components/modals/ReservationModal';
 import { 
   inventoryService, 
   type RemoveWaitlistPayload, 
+  type UpdateWaitlistPayload,
 } from '../services/inventoryService';
 import type { WaitlistPayload } from '../interfaces/WaitlistPayload';
 
@@ -48,7 +49,9 @@ export default function ReservationPage() {
   };
 
   const handleSaveActionModal = async (data: LentItem) => {
-    const acervoId = data.acervoId || data.id;
+    if (data.acervoId === undefined || data.acervoId === null || data.acervoId === '') return;
+
+    const acervoId = data.acervoId;
 
     if (modalMode === 'delete') {
       try {
@@ -80,7 +83,9 @@ export default function ReservationPage() {
   };
 
   const classOptions = useMemo<FilterOption[]>(() => {
-    const rawClasses = lentItems.map((item) => item.studentClass).filter(Boolean);
+    const rawClasses = lentItems
+      .map((item) => item.studentClass)
+      .filter((studentClass): studentClass is string => Boolean(studentClass));
     const uniqueClasses = Array.from(new Set(rawClasses)).sort((a, b) => a.localeCompare(b));
 
     const dynamicOptions = uniqueClasses.map((turma) => ({
@@ -141,7 +146,7 @@ export default function ReservationPage() {
       item.bookTitle.toLowerCase().includes(term) ||
       item.bookAuthor.toLowerCase().includes(term) ||
       item.studentName.toLowerCase().includes(term) ||
-      item.studentClass.toLowerCase().includes(term) ||
+      item.studentClass?.toLowerCase().includes(term) ||
       String(item.id).toLowerCase().includes(term),
   });
 

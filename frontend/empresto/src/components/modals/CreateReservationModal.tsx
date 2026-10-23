@@ -2,15 +2,14 @@ import { useState, useEffect } from 'react';
 import BaseModal from './BaseModal';
 import { TextInput } from '../FormInput';
 import BookSearchInput from '../BookSearchInput';
-import { type BookOption } from '../../interfaces/BookOption';
+import type { BookOption } from '../../interfaces/BookOption';
 
 export interface CreateReservationFormData {
   userName: string;
   classGroup: string;
-  acervoId: string | number;
+  acervoId: number;
   bookTitle: string;
   dueDate: string;
-  itemType: string;
 }
 
 interface CreateReservationModalProps {
@@ -35,7 +34,8 @@ export default function CreateReservationModal({
 }: CreateReservationModalProps) {
   const [userName, setUserName] = useState('');
   const [classGroup, setClassGroup] = useState('');
-  const [selectedBook, setSelectedBook] = useState<BookOption | null>(null);
+  const [bookTitle, setBookTitle] = useState('');
+  const [acervoId, setAcervoId] = useState(0);
 
   const dueDate = getFutureDateFormatted(7);
 
@@ -43,21 +43,24 @@ export default function CreateReservationModal({
     if (isOpen) {
       setUserName('');
       setClassGroup('');
-      setSelectedBook(null);
+      setBookTitle('');
+      setAcervoId(0);
     }
   }, [isOpen]);
 
+  const handleSelectBook = (book: BookOption | null) => {
+    setBookTitle(book?.bookTitle || '');
+    setAcervoId(book ? Number(book.id) : 0);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedBook) return;
-
     onSave({
       userName: userName.trim(),
       classGroup: classGroup.trim(),
-      acervoId: selectedBook.id,
-      bookTitle: selectedBook.bookTitle,
+      acervoId,
+      bookTitle,
       dueDate,
-      itemType: selectedBook.itemType || 'Livro',
     });
     onClose();
   };
@@ -97,7 +100,8 @@ export default function CreateReservationModal({
           <BookSearchInput
             label="Livro Desejado"
             key={isOpen ? 'open' : 'closed'}
-            onSelect={setSelectedBook}
+            onSelect={handleSelectBook}
+            onTextChange={setBookTitle}
             required
           />
         </div>

@@ -1,5 +1,6 @@
 export interface LoanItem {
   id: string;
+  acervoId?: string | number;
   bookTitle: string;
   bookAuthor: string;
   coverUrl?: string;

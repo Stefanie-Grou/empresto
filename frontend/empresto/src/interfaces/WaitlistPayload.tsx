@@ -5,5 +5,5 @@ export interface WaitlistResponse {
 
 export interface WaitlistPayload {
     nomeAluno: string;
-    serie: string;
+    serie?: string;
 }
