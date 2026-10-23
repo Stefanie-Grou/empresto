@@ -44,13 +44,8 @@ export default function CollectionPage() {
     try {
       const data = await inventoryService.getAll();
       setItems(data);
-    } catch (error: any) {
-      setToast({
-        id: Date.now(),
-        type: 'error',
-        title: 'Erro ao carregar acervo',
-        message: 'Não foi possível carregar os itens do acervo.',
-      });
+    } catch {
+      // O toast de erro é exibido pelo inventoryService
     } finally {
       setIsLoading(false);
     }
@@ -107,38 +102,15 @@ export default function CollectionPage() {
     try {
       if (modalMode === 'delete' && selectedItem) {
         await inventoryService.delete(selectedItem.id);
-        setToast({
-          id: Date.now(),
-          type: 'success',
-          title: 'Item removido',
-          message: 'O exemplar foi removido do acervo com sucesso.',
-        });
       } else if (modalMode === 'edit' && selectedItem) {
         await inventoryService.update(selectedItem.id, data);
-        setToast({
-          id: Date.now(),
-          type: 'success',
-          title: 'Item atualizado',
-          message: 'As alterações do item foram salvas com sucesso.',
-        });
       } else {
         await inventoryService.create(data);
-        setToast({
-          id: Date.now(),
-          type: 'success',
-          title: 'Item cadastrado',
-          message: 'Novo exemplar adicionado ao acervo com sucesso.',
-        });
       }
       setIsModalOpen(false);
       await loadItems();
-    } catch (error: any) {
-      setToast({
-        id: Date.now(),
-        type: 'error',
-        title: modalMode === 'delete' ? 'Erro ao remover' : modalMode === 'edit' ? 'Erro ao atualizar' : 'Erro ao cadastrar',
-        message: error.message || 'Ocorreu um erro ao processar a solicitação.',
-      });
+    } catch {
+      // O toast de erro é exibido pelo inventoryService
     }
   };
 

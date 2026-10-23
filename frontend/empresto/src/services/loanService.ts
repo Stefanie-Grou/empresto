@@ -1,5 +1,6 @@
 import type { LentItem } from '../interfaces/LentItem';
 import { ENDPOINTS } from './apiConfig';
+import { toast } from './toastStore';
 
 export interface UpdateLoanPayload {
   acervoId: number;
@@ -21,6 +22,10 @@ function formatDateToISO(dateStr: string): string {
     return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   }
   return dateStr;
+}
+
+function notifyError(title: string, error: unknown, fallback: string) {
+  toast.error(title, error instanceof Error && error.message ? error.message : fallback);
 }
 
 export function addDaysToDate(dateStr: string, days: number = 7): string {
@@ -58,65 +63,96 @@ export function toUpdateLoanPayload(item: LentItem, isRenew: boolean = false): U
 
 export const loanService = {
   async create(data: { acervoId: number; studentName: string; studentClass: string; dueDate: string }) {
-    const payload: CreateLoanPayload = {
+    const payload: UpdateLoanPayload = {
       acervoId: Number(data.acervoId),
       nomeAluno: data.studentName.trim(),
       serie: data.studentClass.trim(),
       dataDevolucaoPrevista: formatDateToISO(data.dueDate),
     };
 
-    const response = await fetch(ENDPOINTS.LOANS, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch(ENDPOINTS.LOANS, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) throw new Error('Erro ao registrar novo empréstimo');
-    return response.json();
+      if (!response.ok) throw new Error('Erro ao registrar novo empréstimo');
+
+      toast.success('Empréstimo registrado', 'O novo empréstimo foi cadastrado com sucesso.');
+      return response.json();
+    } catch (error) {
+      notifyError('Erro ao registrar empréstimo', error, 'Não foi possível registrar o empréstimo.');
+      throw error;
+    }
   },
 
   async update(id: string | number, data: LentItem) {
     const payload = toUpdateLoanPayload(data, false);
-    const url = `${ENDPOINTS.LOANS}`;
+    const url = `${ENDPOINTS.LOANS}/${id}`;
 
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) throw new Error('Erro ao atualizar registro de empréstimo');
-    return response.json();
+      if (!response.ok) throw new Error('Erro ao atualizar registro de empréstimo');
+
+      toast.success('Empréstimo atualizado', 'As alterações do empréstimo foram salvas com sucesso.');
+      return response.json();
+    } catch (error) {
+      notifyError('Erro ao atualizar empréstimo', error, 'Não foi possível atualizar o empréstimo.');
+      throw error;
+    }
   },
 
   async renew(id: string | number, data: LentItem) {
     const payload = toUpdateLoanPayload(data, true);
-    const url = `${ENDPOINTS.LOANS}`;
+    const url = `${ENDPOINTS.LOANS}/${id}/renovar`;
 
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) throw new Error('Erro ao renovar empréstimo');
-    return response.json();
+      if (!response.ok) throw new Error('Erro ao renovar empréstimo');
+
+      toast.success('Empréstimo renovado', 'O prazo de devolução foi estendido com sucesso.');
+      return response.json();
+    } catch (error) {
+      notifyError('Erro ao renovar empréstimo', error, 'Não foi possível renovar o empréstimo.');
+      throw error;
+    }
   },
 
   async delete(id: string | number) {
     const url = `${ENDPOINTS.LOANS}/${id}/devolucao`;
 
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error('Erro ao remover registro de empréstimo');
+      if (!response.ok) {
+        throw new Error('Erro ao registrar a devolução do empréstimo');
+      }
+
+      toast.success('Devolução registrada', 'O empréstimo foi baixado com sucesso.');
+
+      if (response.status === 204) return null;
+
+      const text = await response.text();
+      return text ? JSON.parse(text) : null;
+    } catch (error) {
+      notifyError('Erro ao registrar devolução', error, 'Não foi possível registrar a devolução.');
+      throw error;
     }
-
-    return response.json();
   },
 };

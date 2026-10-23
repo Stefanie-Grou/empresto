@@ -30,7 +30,6 @@ export function useBookSearch({
         setError(null);
       } catch (err) {
         if (!isCurrent) return;
-        console.error('Erro ao buscar livros:', err);
         setError(err);
       } finally {
         if (isCurrent) setIsLoading(false);
