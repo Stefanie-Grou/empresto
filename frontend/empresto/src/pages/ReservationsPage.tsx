@@ -42,9 +42,8 @@ export default function ReservationPage() {
 
       await inventoryService.addToWaitlist(formData.acervoId, payload);
       setIsCreateModalOpen(false);
-    } catch (error) {
-      console.error('Erro ao adicionar à fila de espera:', error);
-      alert('Ocorreu um erro ao registrar a reserva na fila.');
+    } catch {
+      // O toast de erro é exibido pelo inventoryService
     }
   };
 
@@ -61,9 +60,8 @@ export default function ReservationPage() {
         await inventoryService.removeFromWaitlist(acervoId, payload);
 
         setIsActionModalOpen(false);
-      } catch (error) {
-        console.error('Erro ao remover da fila de espera:', error);
-        alert('Não foi possível remover o aluno da fila de espera.');
+      } catch {
+        // O toast de erro é exibido pelo inventoryService
       }
     } else {
       try {
@@ -75,9 +73,8 @@ export default function ReservationPage() {
         await inventoryService.updateWaitlist(acervoId, payload);
 
         setIsActionModalOpen(false);
-      } catch (error) {
-        console.error('Erro ao atualizar a reserva:', error);
-        alert('Não foi possível atualizar os dados da reserva.');
+      } catch {
+        // O toast de erro é exibido pelo inventoryService
       }
     }
   };

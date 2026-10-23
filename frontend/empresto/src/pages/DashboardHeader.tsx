@@ -15,8 +15,8 @@ export default function DashboardHeader() {
         dueDate: formData.dueDate,
       });
       setIsCreateModalOpen(false);
-    } catch (error) {
-      console.error('Erro ao cadastrar novo empréstimo:', error);
+    } catch {
+      // O toast de erro é exibido pelo loanService
     }
   };
 

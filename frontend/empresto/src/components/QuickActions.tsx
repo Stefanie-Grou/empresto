@@ -24,8 +24,8 @@ export default function QuickActions({ actions }: QuickActionsProps) {
     try {
       await inventoryService.create(data);
       setIsItemModalOpen(false);
-    } catch (error) {
-      console.error('Erro ao cadastrar exemplar no acervo:', error);
+    } catch {
+      // O toast de erro é exibido pelo inventoryService
     }
   };
 
