@@ -19,7 +19,6 @@ interface CreateReservationModalProps {
   onSave: (data: CreateReservationFormData) => void;
 }
 
-// Função para calcular a data daqui a 7 dias no formato DD/MM/YYYY
 function getFutureDateFormatted(daysAhead: number = 7): string {
   const date = new Date();
   date.setDate(date.getDate() + daysAhead);

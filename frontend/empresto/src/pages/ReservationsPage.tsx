@@ -22,20 +22,17 @@ export interface ReservationFilterState {
 export default function ReservationPage() {
   const lentItems = useMemo(() => MOCK_LOANS.map(toLentItem), []);
 
-  // Estados de modais
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<LentItem | null>(null);
   const [modalMode, setModalMode] = useState<'edit' | 'delete'>('edit');
 
-  // Estados de filtros
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<ReservationFilterState>({
     turma: 'todas',
     ordenacao: 'aluno_asc',
   });
 
-  // Handler para criar nova reserva
   const handleSaveNewReservation = async (formData: CreateReservationFormData) => {
     try {
       const payload: WaitlistPayload = {
@@ -52,7 +49,6 @@ export default function ReservationPage() {
     }
   };
 
-  // Handler para salvar ação no modal (edição PUT ou remoção DELETE)
   const handleSaveActionModal = async (data: LentItem) => {
     const acervoId = data.acervoId || data.id;
 
@@ -72,7 +68,6 @@ export default function ReservationPage() {
         alert('Não foi possível remover o aluno da fila de espera.');
       }
     } else {
-      // Bloco do PUT para Edição da Reserva
       try {
         const payload: UpdateWaitlistPayload = {
           nomeAluno: data.studentName,
@@ -90,7 +85,6 @@ export default function ReservationPage() {
     }
   };
 
-  // Extração dinâmica das turmas
   const classOptions = useMemo<FilterOption[]>(() => {
     const rawClasses = lentItems.map((item) => item.studentClass).filter(Boolean);
     const uniqueClasses = Array.from(new Set(rawClasses)).sort((a, b) => a.localeCompare(b));
@@ -103,7 +97,6 @@ export default function ReservationPage() {
     return [{ label: 'Todas as turmas', value: 'todas' }, ...dynamicOptions];
   }, [lentItems]);
 
-  // Configuração dos campos do filtro
   const filterFields = useMemo<FieldConfig<ReservationFilterState>[]>(() => [
     {
       key: 'turma',
@@ -122,7 +115,6 @@ export default function ReservationPage() {
     },
   ], [classOptions]);
 
-  // Aplicação da lógica de filtro e ordenação
   const filteredReservations = useMemo(() => {
     return lentItems
       .filter((item) => {
@@ -142,7 +134,6 @@ export default function ReservationPage() {
       });
   }, [lentItems, filters]);
 
-  // Busca e Paginação
   const {
     searchTerm,
     currentPage,

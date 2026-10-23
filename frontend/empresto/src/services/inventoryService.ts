@@ -27,9 +27,7 @@ export function toInventoryPayload(data: Omit<InventoryItem, 'id' | 'available'>
 
 const USE_MOCK = true;
 
-// Operações HTTP respeitando os verbos REST
 export const inventoryService = {
-  // POST - Criar novo item no acervo
   async create(itemData: Omit<InventoryItem, 'id' | 'available'>) {
     if (USE_MOCK) {
       console.log('[MOCK POST] Criando item no acervo localmente:', itemData);
@@ -51,7 +49,6 @@ export const inventoryService = {
     return response.json();
   },
 
-  // PUT - Atualizar item existente no acervo
   async update(id: string | number, itemData: Omit<InventoryItem, 'id' | 'available'>) {
     if (USE_MOCK) {
       console.log(`[MOCK PUT] Atualizando item ${id} localmente:`, itemData);
@@ -73,7 +70,6 @@ export const inventoryService = {
     return response.json();
   },
 
-  // DELETE - Deleção do item
   async delete(id: string | number) {
     if (USE_MOCK) {
       console.log(`[MOCK DELETE] Removendo item ${id} localmente`);
@@ -92,7 +88,6 @@ export const inventoryService = {
     return response.json();
   },
 
-  // SEARCH - Busca de livros para reservas e formulários
   async searchBooks(query: string): Promise<BookOption[]> {
     if (USE_MOCK) {
       const term = query.toLowerCase().trim();
@@ -109,7 +104,6 @@ export const inventoryService = {
           book.bookAuthor.toLowerCase().includes(term)
       );
 
-      // Remove duplicados pelo título do livro
       const uniqueBooks = Array.from(
         new Map(results.map((item) => [item.bookTitle, item])).values()
       );
