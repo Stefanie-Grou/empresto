@@ -5,23 +5,46 @@ import { usePaginatedSearch } from '../components/PaginatedSearch';
 import ReservationsTable from '../components/ReservationsTable';
 import { toLentItem } from '../utils/adapters';
 import type { LentItem } from '../interfaces/LentItem';
-import GenericFilterDropdown, { type FieldConfig, type FilterOption } from '../components/GenericFilterDopdown';
+import GenericFilterDropdown from '../components/GenericFilterDopdown';
+import CreateReservationModal, { type CreateReservationFormData } from '../components/modals/CreateReservationModal';
+import { inventoryService } from '../services/inventoryService';
+import { type WaitlistPayload } from '../interfaces/WaitlistPayload';
 
 export interface ReservationFilterState {
-  turma: string;      // 'todas' | '7A' | '7B' | etc.
-  ordenacao: string;  // 'aluno_asc' | 'livro_asc'
+  turma: string;
+  ordenacao: string;
 }
 
 export default function ReservationPage() {
   const lentItems = useMemo(() => MOCK_LOANS.map(toLentItem), []);
 
+  // Estados de controle dos Modais e Filtros
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState<ReservationFilterState>({
+    turma: 'todas',
+    ordenacao: 'aluno_asc',
+  });
+
+const handleSaveReservation = async (formData: CreateReservationFormData) => {
+  try {
+    await inventoryService.addToWaitlist(formData.acervoId, {
+      nomeAluno: formData.userName,
+      serie: formData.classGroup,
+    });
+
+    setIsCreateModalOpen(false);
+  } catch (error) {
+    console.error('Erro ao registrar reserva:', error);
+    alert('Ocorreu um erro ao tentar salvar a reserva.');
+  }
+};
+
+  // Extração dinâmica das turmas
   const classOptions = useMemo<FilterOption[]>(() => {
     const rawClasses = lentItems.map((item) => item.studentClass).filter(Boolean);
-    
-    // Remove duplicados e ordena alfabeticamente
     const uniqueClasses = Array.from(new Set(rawClasses)).sort((a, b) => a.localeCompare(b));
 
-    // Mapeia para o formato de opções { label, value }
     const dynamicOptions = uniqueClasses.map((turma) => ({
       label: turma,
       value: turma,
@@ -30,7 +53,7 @@ export default function ReservationPage() {
     return [{ label: 'Todas as turmas', value: 'todas' }, ...dynamicOptions];
   }, [lentItems]);
 
-  // 2. Configuração dos campos usando a lista dinâmica de turmas
+  // Configuração dos campos do filtro
   const filterFields = useMemo<FieldConfig<ReservationFilterState>[]>(() => [
     {
       key: 'turma',
@@ -48,13 +71,6 @@ export default function ReservationPage() {
       ],
     },
   ], [classOptions]);
-
-  // Controladores do Filtro
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filters, setFilters] = useState<ReservationFilterState>({
-    turma: 'todas',
-    ordenacao: 'aluno_asc',
-  });
 
   // Aplicação da lógica de filtro e ordenação
   const filteredReservations = useMemo(() => {
@@ -96,6 +112,7 @@ export default function ReservationPage() {
 
   return (
     <div className="flex flex-col gap-6 p-8 relative">
+      {/* Barra de Ações conectada ao acionamento do modal de reservas */}
       <ItemsActionBarHeader
         title="Reservas"
         subtitle="Gerencie a ordem de alunos aguardando por livros que estão emprestados no momento."
@@ -103,11 +120,11 @@ export default function ReservationPage() {
         newItemLabel="Adicionar à Fila"
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
-        onNewItemClick={() => console.log('Novo item')}
+        onNewItemClick={() => setIsCreateModalOpen(true)}
         onFilterClick={() => setIsFilterOpen((prev) => !prev)}
       />
 
-      {/* Passa as opções dinâmicas via `fields={filterFields}` */}
+      {/* Popover/Modal do Filtro */}
       <GenericFilterDropdown
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
@@ -117,6 +134,7 @@ export default function ReservationPage() {
         onChange={setFilters}
       />
 
+      {/* Tabela de Reservas */}
       <ReservationsTable
         items={paginatedItems}
         currentPage={currentPage}
@@ -124,6 +142,13 @@ export default function ReservationPage() {
         onPageChange={setCurrentPage}
         onEdit={(item) => console.log('Editar:', item)}
         onDelete={(item) => console.log('Excluir:', item)}
+      />
+
+      {/* Modal de Criação de Reserva na Fila de Espera */}
+      <CreateReservationModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSave={handleSaveReservation}
       />
     </div>
   );
