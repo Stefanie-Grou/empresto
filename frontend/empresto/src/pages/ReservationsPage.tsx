@@ -5,10 +5,14 @@ import { usePaginatedSearch } from '../components/PaginatedSearch';
 import ReservationsTable from '../components/ReservationsTable';
 import { toLentItem } from '../utils/adapters';
 import type { LentItem } from '../interfaces/LentItem';
-import GenericFilterDropdown from '../components/GenericFilterDopdown';
+import GenericFilterDropdown, { type FieldConfig, type FilterOption } from '../components/GenericFilterDopdown';
 import CreateReservationModal, { type CreateReservationFormData } from '../components/modals/CreateReservationModal';
-import { inventoryService } from '../services/inventoryService';
-import { type WaitlistPayload } from '../interfaces/WaitlistPayload';
+import ReservationModal from '../components/modals/ReservationModal';
+import { 
+  inventoryService, 
+  type RemoveWaitlistPayload, 
+} from '../services/inventoryService';
+import type { WaitlistPayload } from '../interfaces/WaitlistPayload';
 
 export interface ReservationFilterState {
   turma: string;
@@ -18,27 +22,73 @@ export interface ReservationFilterState {
 export default function ReservationPage() {
   const lentItems = useMemo(() => MOCK_LOANS.map(toLentItem), []);
 
-  // Estados de controle dos Modais e Filtros
+  // Estados de modais
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState<LentItem | null>(null);
+  const [modalMode, setModalMode] = useState<'edit' | 'delete'>('edit');
+
+  // Estados de filtros
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<ReservationFilterState>({
     turma: 'todas',
     ordenacao: 'aluno_asc',
   });
 
-const handleSaveReservation = async (formData: CreateReservationFormData) => {
-  try {
-    await inventoryService.addToWaitlist(formData.acervoId, {
-      nomeAluno: formData.userName,
-      serie: formData.classGroup,
-    });
+  // Handler para criar nova reserva
+  const handleSaveNewReservation = async (formData: CreateReservationFormData) => {
+    try {
+      const payload: WaitlistPayload = {
+        nomeAluno: formData.userName,
+        serie: formData.classGroup,
+      };
 
-    setIsCreateModalOpen(false);
-  } catch (error) {
-    console.error('Erro ao registrar reserva:', error);
-    alert('Ocorreu um erro ao tentar salvar a reserva.');
-  }
-};
+      await inventoryService.addToWaitlist(formData.acervoId, payload);
+      console.log('Reserva cadastrada com sucesso!');
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      console.error('Erro ao adicionar à fila de espera:', error);
+      alert('Ocorreu um erro ao registrar a reserva na fila.');
+    }
+  };
+
+  // Handler para salvar ação no modal (edição PUT ou remoção DELETE)
+  const handleSaveActionModal = async (data: LentItem) => {
+    const acervoId = data.acervoId || data.id;
+
+    if (modalMode === 'delete') {
+      try {
+        const payload: RemoveWaitlistPayload = {
+          nomeAluno: data.studentName,
+          serie: data.studentClass,
+        };
+
+        await inventoryService.removeFromWaitlist(acervoId, payload);
+        console.log(`[DELETE Sucesso] Aluno ${data.studentName} removido da fila do acervo ${acervoId}`);
+
+        setIsActionModalOpen(false);
+      } catch (error) {
+        console.error('Erro ao remover da fila de espera:', error);
+        alert('Não foi possível remover o aluno da fila de espera.');
+      }
+    } else {
+      // Bloco do PUT para Edição da Reserva
+      try {
+        const payload: UpdateWaitlistPayload = {
+          nomeAluno: data.studentName,
+          serie: data.studentClass,
+        };
+
+        await inventoryService.updateWaitlist(acervoId, payload);
+        console.log(`[PUT Sucesso] Reserva do aluno ${data.studentName} atualizada na fila do acervo ${acervoId}`);
+
+        setIsActionModalOpen(false);
+      } catch (error) {
+        console.error('Erro ao atualizar a reserva:', error);
+        alert('Não foi possível atualizar os dados da reserva.');
+      }
+    }
+  };
 
   // Extração dinâmica das turmas
   const classOptions = useMemo<FilterOption[]>(() => {
@@ -112,7 +162,6 @@ const handleSaveReservation = async (formData: CreateReservationFormData) => {
 
   return (
     <div className="flex flex-col gap-6 p-8 relative">
-      {/* Barra de Ações conectada ao acionamento do modal de reservas */}
       <ItemsActionBarHeader
         title="Reservas"
         subtitle="Gerencie a ordem de alunos aguardando por livros que estão emprestados no momento."
@@ -124,7 +173,6 @@ const handleSaveReservation = async (formData: CreateReservationFormData) => {
         onFilterClick={() => setIsFilterOpen((prev) => !prev)}
       />
 
-      {/* Popover/Modal do Filtro */}
       <GenericFilterDropdown
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
@@ -134,21 +182,44 @@ const handleSaveReservation = async (formData: CreateReservationFormData) => {
         onChange={setFilters}
       />
 
-      {/* Tabela de Reservas */}
       <ReservationsTable
         items={paginatedItems}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
-        onEdit={(item) => console.log('Editar:', item)}
-        onDelete={(item) => console.log('Excluir:', item)}
+        onEdit={(item) => {
+          setSelectedReservation(item);
+          setModalMode('edit');
+          setIsActionModalOpen(true);
+        }}
+        onDelete={(item) => {
+          setSelectedReservation(item);
+          setModalMode('delete');
+          setIsActionModalOpen(true);
+        }}
       />
 
-      {/* Modal de Criação de Reserva na Fila de Espera */}
+      {/* Modal para Adicionar à Fila */}
       <CreateReservationModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSave={handleSaveReservation}
+        onSave={handleSaveNewReservation}
+      />
+
+      {/* Modal Unificado para Edição e Exclusão de Reserva */}
+      <ReservationModal
+        isOpen={isActionModalOpen}
+        onClose={() => setIsActionModalOpen(false)}
+        onSave={handleSaveActionModal}
+        reservation={selectedReservation}
+        isReadOnly={modalMode !== 'edit'}
+        title={modalMode === 'delete' ? 'Remover da Fila de Espera' : 'Editar Reserva'}
+        warningMessage={
+          modalMode === 'delete'
+            ? 'Confirma a remoção desta entrada na fila de espera?'
+            : undefined
+        }
+        submitLabel={modalMode === 'delete' ? 'Remover' : 'Salvar Alterações'}
       />
     </div>
   );

@@ -2,14 +2,18 @@ import type { InventoryItem } from '../interfaces/InventoryItem';
 import { ENDPOINTS } from './apiConfig';
 import type { BookOption } from '../interfaces/BookOption';
 import { MOCK_LOANS } from '../mocks/mock_loans'; 
-import { type WaitlistResponse } from '../interfaces/WaitlistPayload';
+import { type WaitlistResponse, type WaitlistPayload } from '../interfaces/WaitlistPayload';
 
-// Contrato esperado pela API para POST / PUT
 export interface InventoryPayload {
   titulo: string;
   tipo: string;
   autor: string;
   quantidadeTotal: number;
+}
+
+export interface RemoveWaitlistPayload {
+  studentName: string;
+  studentClass?: string;
 }
 
 export function toInventoryPayload(data: Omit<InventoryItem, 'id' | 'available'>): InventoryPayload {
@@ -128,6 +132,39 @@ export const inventoryService = {
 
     if (!response.ok) {
       throw new Error('Erro ao adicionar aluno à fila de espera.');
+    }
+
+    return response.json();
+  },
+
+  async removeFromWaitlist(acervoId: string | number, payload: RemoveWaitlistPayload) {
+
+    const url = `${ENDPOINTS.INVENTORY}/${acervoId}/fila`;
+
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao remover aluno da fila de espera.');
+    }
+
+    return response.json();
+  },
+
+  async updateWaitlist(acervoId: string | number, payload: WaitlistPayload) {
+    const url = `${ENDPOINTS.INVENTORY}/${acervoId}/fila`;
+
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao atualizar a reserva na fila de espera.');
     }
 
     return response.json();
