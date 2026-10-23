@@ -1,5 +1,6 @@
 export interface LentItem {
   id: string | number;
+  acervoId?: string | number;
   bookTitle: string;
   bookAuthor: string;
   coverUrl?: string;

@@ -3,6 +3,7 @@ import type { LoanItem } from "../interfaces/LoanItem";
 export const MOCK_LOANS: LoanItem[] = [
   {
     id: '1',
+    acervoId: '1',
     bookTitle: 'O Auto da Compadecida',
     bookAuthor: 'Ariano Suassuna',
     userName: 'Ana Martins',
@@ -13,6 +14,7 @@ export const MOCK_LOANS: LoanItem[] = [
   },
   {
     id: '2',
+    acervoId: '2',
     bookTitle: 'Turma da Mônica Jovem',
     bookAuthor: 'Maurício de Sousa',
     userName: 'Renato Dias',
@@ -23,6 +25,7 @@ export const MOCK_LOANS: LoanItem[] = [
   },
   {
     id: '3',
+    acervoId: '3',
     bookTitle: 'A Hipótese do Amor',
     bookAuthor: 'Ali Hazelwood',
     userName: 'Lucas Gomes',
@@ -33,6 +36,7 @@ export const MOCK_LOANS: LoanItem[] = [
   },
   {
     id: '4',
+    acervoId: '4',
     bookTitle: 'A morte de Ivan Ilitch ',
     bookAuthor: 'Liev Tolstói',
     userName: 'Mariano Gomes',
@@ -43,6 +47,7 @@ export const MOCK_LOANS: LoanItem[] = [
   },
   {
     id: '5',
+    acervoId: '5',
     bookTitle: 'Coraline',
     bookAuthor: 'Neil Gaiman',
     userName: 'Analice Rodrigues',
@@ -52,6 +57,7 @@ export const MOCK_LOANS: LoanItem[] = [
     itemType: 'Livro'
   }, {
     id: '6',
+    acervoId: '6',
     bookTitle: 'Biologia de Campbell',
     bookAuthor: 'Andrew Reece',
     userName: 'Elisângela Roberta',

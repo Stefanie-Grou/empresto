@@ -7,7 +7,7 @@ import type { BookOption } from '../interfaces/BookOption';
 interface BookSearchInputProps {
   label: string;
   placeholder?: string;
-  error?: string;
+  invalid?: boolean;
   required?: boolean;
   disabled?: boolean;
   debounceMs?: number;
@@ -29,7 +29,7 @@ const DROPDOWN_GAP = 4;
 export default function BookSearchInput({
   label,
   placeholder = 'Digite o título do livro...',
-  error,
+  invalid,
   required,
   disabled,
   debounceMs,
@@ -192,8 +192,9 @@ export default function BookSearchInput({
           placeholder={placeholder}
           required={required}
           disabled={disabled}
+          aria-invalid={invalid || undefined}
           className={`w-full px-4 py-2.5 pr-10 bg-gray-100/80 rounded-xl text-sm text-gray-800 outline-none transition-all ${
-            error
+            invalid
               ? 'border border-red-500 bg-red-50/30'
               : 'focus:bg-white focus:ring-2 focus:ring-emerald-800'
           } ${disabled ? 'cursor-not-allowed text-gray-500' : ''}`}
@@ -210,8 +211,6 @@ export default function BookSearchInput({
           </button>
         )}
       </div>
-
-      {error && <span className="text-xs text-red-500 mt-1 block w-full">{error}</span>}
 
       {dropdown}
     </div>

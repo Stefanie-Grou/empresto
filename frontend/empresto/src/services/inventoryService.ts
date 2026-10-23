@@ -1,7 +1,7 @@
 import type { InventoryItem } from '../interfaces/InventoryItem';
 import { ENDPOINTS } from './apiConfig';
 import type { BookOption } from '../interfaces/BookOption';
-import { type WaitlistResponse, type WaitlistPayload } from '../interfaces/WaitlistPayload';
+import { type WaitlistPayload } from '../interfaces/WaitlistPayload';
 import { toast } from './toastStore';
 
 export interface InventoryPayload {
@@ -12,9 +12,13 @@ export interface InventoryPayload {
 }
 
 export interface RemoveWaitlistPayload {
-  studentName: string;
-  studentClass?: string;
+  nomeAluno: string;
+  serie?: string;
 }
+
+// PUT e DELETE na fila de espera usam o mesmo corpo do POST
+// (o verbo é que muda), então o payload de atualização é o mesmo.
+export type UpdateWaitlistPayload = WaitlistPayload;
 
 export function toInventoryPayload(data: Omit<InventoryItem, 'id' | 'available'>): InventoryPayload {
   return {
@@ -116,23 +120,24 @@ export const inventoryService = {
     return response.json();
   },
 
-  async addToWaitlist(acervoId: string | number, payload: WaitlistResponse) {
+  async addToWaitlist(acervoId: string | number, payload: WaitlistPayload) {
     const url = `${ENDPOINTS.INVENTORY}/${acervoId}/fila`;
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      const error = new Error('Erro ao adicionar aluno à fila de espera.');
+      if (!response.ok) throw new Error('Erro ao adicionar aluno à fila de espera.');
+
+      toast.success('Reserva cadastrada', 'O aluno entrou na fila de espera com sucesso.');
+      return response.json();
+    } catch (error) {
       notifyError('Erro ao reservar', error, 'Não foi possível adicionar o aluno à fila de espera.');
       throw error;
     }
-
-    toast.success('Reserva cadastrada', 'O aluno entrou na fila de espera com sucesso.');
-    return response.json();
   },
 
   async removeFromWaitlist(acervoId: string | number, payload: RemoveWaitlistPayload) {
