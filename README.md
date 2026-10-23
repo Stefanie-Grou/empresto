@@ -193,7 +193,9 @@ backend/
       "mensagem": "Aluno adicionado à fila de espera."
     }
     ```
-
+* **Remover da Fila de Espera**
+  * **Método:** `DELETE`
+  * **Rota:** `/api/v1/acervo/{acervoId}/fila`
 ---
 
 # Frontend
