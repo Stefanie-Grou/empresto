@@ -23,7 +23,6 @@ export default function QuickActions({ actions }: QuickActionsProps) {
   const handleSaveInventoryItem = async (data: Omit<InventoryItem, 'id' | 'available'>) => {
     try {
       await inventoryService.create(data);
-      console.log('Novo exemplar cadastrado via Ações Rápidas!');
       setIsItemModalOpen(false);
     } catch (error) {
       console.error('Erro ao cadastrar exemplar no acervo:', error);

@@ -14,7 +14,6 @@ export default function DashboardHeader() {
         studentClass: formData.studentClass,
         dueDate: formData.dueDate,
       });
-      console.log('Empréstimo cadastrado com sucesso!');
       setIsCreateModalOpen(false);
     } catch (error) {
       console.error('Erro ao cadastrar novo empréstimo:', error);

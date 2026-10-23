@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { LentItem } from '../../interfaces/LentItem';
 import BaseModal from './BaseModal';
 import { TextInput } from '../FormInput';
+import BookSearchInput from '../BookSearchInput';
 
 interface LoanModalProps {
   isOpen: boolean;
@@ -99,13 +100,26 @@ export default function LoanModal({
 
       <div className="grid grid-cols-12 gap-3 items-center">
         <div className="col-span-7">
-          <TextInput
-            label="Livro"
-            value={formData.bookTitle}
-            onChange={(e) => handleInputChange('bookTitle', e.target.value)}
-            disabled={isReadOnly}
-            readOnly={isReadOnly}
-          />
+          {isReadOnly ? (
+            <TextInput
+              label="Livro"
+              value={formData.bookTitle}
+              onChange={(e) => handleInputChange('bookTitle', e.target.value)}
+              disabled
+              readOnly
+            />
+          ) : (
+            <BookSearchInput
+              label="Livro"
+              placeholder="O Auto da Compadecida"
+              initialValue={formData.bookTitle}
+              onSelect={(book) => {
+                if (book) handleInputChange('bookTitle', book.bookTitle);
+              }}
+              onTextChange={(text) => handleInputChange('bookTitle', text)}
+              required
+            />
+          )}
         </div>
         <div className="col-span-5">
           <TextInput

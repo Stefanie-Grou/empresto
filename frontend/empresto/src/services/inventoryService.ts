@@ -30,14 +30,11 @@ const USE_MOCK = true;
 export const inventoryService = {
   async create(itemData: Omit<InventoryItem, 'id' | 'available'>) {
     if (USE_MOCK) {
-      console.log('[MOCK POST] Criando item no acervo localmente:', itemData);
       return Promise.resolve({ success: true, ...itemData });
     }
 
     const payload = toInventoryPayload(itemData);
     const url = ENDPOINTS.INVENTORY;
-
-    console.log(`[POST] Enviando requisição para: ${url}`, payload);
 
     const response = await fetch(url, {
       method: 'POST',
@@ -51,14 +48,11 @@ export const inventoryService = {
 
   async update(id: string | number, itemData: Omit<InventoryItem, 'id' | 'available'>) {
     if (USE_MOCK) {
-      console.log(`[MOCK PUT] Atualizando item ${id} localmente:`, itemData);
       return Promise.resolve({ success: true, id, ...itemData });
     }
 
     const payload = toInventoryPayload(itemData);
     const url = `${ENDPOINTS.INVENTORY}/${id}`;
-
-    console.log(`[PUT] Enviando requisição para: ${url}`, payload);
 
     const response = await fetch(url, {
       method: 'PUT',
@@ -72,13 +66,10 @@ export const inventoryService = {
 
   async delete(id: string | number) {
     if (USE_MOCK) {
-      console.log(`[MOCK DELETE] Removendo item ${id} localmente`);
       return Promise.resolve({ success: true, id });
     }
 
     const url = `${ENDPOINTS.INVENTORY}/${id}`;
-
-    console.log(`[DELETE] Enviando requisição para: ${url}`);
 
     const response = await fetch(url, {
       method: 'DELETE',
@@ -92,7 +83,7 @@ export const inventoryService = {
     if (USE_MOCK) {
       const term = query.toLowerCase().trim();
 
-      const results = MOCK_LOANS.map((item) => ({
+      const results = MOCK_LOANS.map<BookOption>((item) => ({
         id: item.id,
         bookTitle: item.bookTitle,
         bookAuthor: item.bookAuthor,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import BaseModal from './BaseModal';
 import { TextInput } from '../FormInput';
-import { inventoryService } from '../../services/inventoryService';
+import BookSearchInput from '../BookSearchInput';
 import { type BookOption } from '../../interfaces/BookOption';
 
 export interface CreateReservationFormData {
@@ -37,10 +37,6 @@ export default function CreateReservationModal({
   const [classGroup, setClassGroup] = useState('');
   const [selectedBook, setSelectedBook] = useState<BookOption | null>(null);
 
-  const [bookQuery, setBookQuery] = useState('');
-  const [bookSuggestions, setBookSuggestions] = useState<BookOption[]>([]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   const dueDate = getFutureDateFormatted(7);
 
   useEffect(() => {
@@ -48,34 +44,8 @@ export default function CreateReservationModal({
       setUserName('');
       setClassGroup('');
       setSelectedBook(null);
-      setBookQuery('');
-      setBookSuggestions([]);
-      setIsDropdownOpen(false);
     }
   }, [isOpen]);
-
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const results = await inventoryService.searchBooks(bookQuery);
-        setBookSuggestions(results);
-      } catch (error) {
-        console.error('Erro ao buscar livros:', error);
-      }
-    };
-
-    const timer = setTimeout(() => {
-      fetchBooks();
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [bookQuery]);
-
-  const handleSelectBook = (book: BookOption) => {
-    setSelectedBook(book);
-    setBookQuery(book.bookTitle);
-    setIsDropdownOpen(false);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +57,7 @@ export default function CreateReservationModal({
       acervoId: selectedBook.id,
       bookTitle: selectedBook.bookTitle,
       dueDate,
-      itemType: selectedBook.itemType,
+      itemType: selectedBook.itemType || 'Livro',
     });
     onClose();
   };
@@ -122,40 +92,14 @@ export default function CreateReservationModal({
           />
         </div>
 
-        {/* Linha 3: Busca de Livro com Dropdown com visibilidade garantida */}
-        <div className="relative">
-          <TextInput
+        {/* Linha 3: Busca de Livro com Dropdown de sugestões */}
+        <div>
+          <BookSearchInput
             label="Livro Desejado"
-            value={bookQuery}
-            onChange={(e) => {
-              setBookQuery(e.target.value);
-              setSelectedBook(null);
-              setIsDropdownOpen(true);
-            }}
-            onFocus={() => setIsDropdownOpen(true)}
-            placeholder="Digite o título do livro..."
+            key={isOpen ? 'open' : 'closed'}
+            onSelect={setSelectedBook}
             required
           />
-
-          {/* Dropdown de Sugestões com alto contraste e legibilidade */}
-          {isDropdownOpen && bookSuggestions.length > 0 && !selectedBook && (
-            <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-2xl shadow-2xl max-h-48 overflow-y-auto z-[100] divide-y divide-gray-100">
-              {bookSuggestions.map((book) => (
-                <div
-                  key={book.id}
-                  onClick={() => handleSelectBook(book)}
-                  className="px-4 py-3 hover:bg-emerald-50/80 cursor-pointer flex flex-col text-left transition-colors"
-                >
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {book.bookTitle}
-                  </span>
-                  <span className="text-xs text-gray-500 font-medium mt-0.5">
-                    {book.bookAuthor}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Linha 4: Prazo de Devolução (+7 dias) */}
