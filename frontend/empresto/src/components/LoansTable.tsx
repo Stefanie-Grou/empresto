@@ -136,9 +136,9 @@ export default function LoansTable({
                           type="button"
                           onClick={() => onDelete?.(item)}
                           className="p-1.5 bg-red-100/60 hover:bg-red-200 text-soft-red rounded-lg transition-colors cursor-pointer"
-                          title="Excluir/Devolver"
+                          title="Devolver"
                         >
-                          <Icon icon="lucide:x" className="w-3.5 h-3.5" />
+                          <Icon icon="lucide:check" className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
