@@ -49,7 +49,7 @@ export default function CollectionPage() {
         id: Date.now(),
         type: 'error',
         title: 'Erro ao carregar acervo',
-        message: error.message || 'Não foi possível carregar os itens do acervo.',
+        message: 'Não foi possível carregar os itens do acervo.',
       });
     } finally {
       setIsLoading(false);

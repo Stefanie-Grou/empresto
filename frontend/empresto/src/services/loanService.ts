@@ -65,8 +65,6 @@ export const loanService = {
       dataDevolucaoPrevista: formatDateToISO(data.dueDate),
     };
 
-    console.log(`[POST] Enviando para: ${ENDPOINTS.LOANS}`, payload);
-
     const response = await fetch(ENDPOINTS.LOANS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -80,8 +78,6 @@ export const loanService = {
   async update(id: string | number, data: LentItem) {
     const payload = toUpdateLoanPayload(data, false);
     const url = `${ENDPOINTS.LOANS}`;
-
-    console.log(`[PUT] Enviando para: ${url}`, payload);
 
     const response = await fetch(url, {
       method: 'PUT',
@@ -97,8 +93,6 @@ export const loanService = {
     const payload = toUpdateLoanPayload(data, true);
     const url = `${ENDPOINTS.LOANS}`;
 
-    console.log(`[RENEW] Enviando para: ${url}`, payload);
-
     const response = await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -111,8 +105,6 @@ export const loanService = {
 
   async delete(id: string | number) {
     const url = `${ENDPOINTS.LOANS}/${id}/devolucao`;
-
-    console.log(`[DELETE] Enviando requisição`);
 
     const response = await fetch(url, {
       method: 'DELETE',

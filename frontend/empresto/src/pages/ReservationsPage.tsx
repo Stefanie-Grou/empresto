@@ -41,7 +41,6 @@ export default function ReservationPage() {
       };
 
       await inventoryService.addToWaitlist(formData.acervoId, payload);
-      console.log('Reserva cadastrada com sucesso!');
       setIsCreateModalOpen(false);
     } catch (error) {
       console.error('Erro ao adicionar à fila de espera:', error);
@@ -60,7 +59,6 @@ export default function ReservationPage() {
         };
 
         await inventoryService.removeFromWaitlist(acervoId, payload);
-        console.log(`[DELETE Sucesso] Aluno ${data.studentName} removido da fila do acervo ${acervoId}`);
 
         setIsActionModalOpen(false);
       } catch (error) {
@@ -75,7 +73,6 @@ export default function ReservationPage() {
         };
 
         await inventoryService.updateWaitlist(acervoId, payload);
-        console.log(`[PUT Sucesso] Reserva do aluno ${data.studentName} atualizada na fila do acervo ${acervoId}`);
 
         setIsActionModalOpen(false);
       } catch (error) {

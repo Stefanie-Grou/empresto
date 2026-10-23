@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import BaseModal from './BaseModal';
 import { TextInput } from '../FormInput';
+import BookSearchInput from '../BookSearchInput';
+import type { BookOption } from '../../interfaces/BookOption';
 
-interface CreateLoanFormData {
-  acervoId: number | string;
+export interface CreateLoanFormData {
+  acervoId: number;
   studentName: string;
   studentClass: string;
   bookTitle: string;
@@ -19,7 +21,7 @@ interface CreateLoanModalProps {
 }
 
 const INITIAL_FORM_STATE: CreateLoanFormData = {
-  acervoId: '',
+  acervoId: 0,
   studentName: '',
   studentClass: '',
   bookTitle: '',
@@ -45,6 +47,15 @@ export default function CreateLoanModal({
 
   const handleInputChange = (field: keyof CreateLoanFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSelectBook = (book: BookOption | null) => {
+    // Campo visual: o empréstimo continua guardando o título do livro
+    setFormData((prev) => ({
+      ...prev,
+      bookTitle: book?.bookTitle || '',
+      acervoId: book ? Number(book.id) : 0,
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -83,11 +94,11 @@ export default function CreateLoanModal({
 
       <div className="grid grid-cols-12 gap-3 items-center">
         <div className="col-span-7">
-          <TextInput
+          <BookSearchInput
             label="Livro"
-            value={formData.bookTitle}
-            onChange={(e) => handleInputChange('bookTitle', e.target.value)}
             placeholder="O Auto da Compadecida"
+            onSelect={handleSelectBook}
+            onTextChange={(text) => setFormData((prev) => ({ ...prev, bookTitle: text }))}
             required
           />
         </div>
