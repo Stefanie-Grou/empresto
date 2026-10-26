@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderLogo from '../assets/HeaderLogo';
 import Toast, { type ToastType } from '../components/Toast';
+import { saveSession } from '../services/session';
 
 interface RegisterFormData {
   nomeUsuario: string;
@@ -160,8 +161,7 @@ export function RegisterForm({ onSwitchToLogin, showHeaderLogo = true }: Registe
       }
 
       localStorage.setItem('empresto_saved_user', formData.nomeUsuario.trim());
-      localStorage.setItem('empresto_token', data.token);
-      localStorage.setItem('empresto_usuario', JSON.stringify(data.usuario));
+      saveSession(data.token, data.usuario);
       sessionStorage.setItem('register_success', 'true');
 
       navigate('/dashboard', { state: { registerSuccess: true } });

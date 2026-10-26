@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
+import { clearSession } from '../services/session';
 
 interface DropdownOptionsProps {
   userName?: string;
@@ -16,10 +17,8 @@ export default function DropdownOptions({
 
   const handleLogout = () => {
     setIsOpen(false);
-    localStorage.removeItem('empresto_token');
-    localStorage.removeItem('empresto_usuario');
-    sessionStorage.removeItem('login_success');
-    navigate('/');
+    clearSession();
+    navigate('/', { replace: true });
   };
 
   return (
