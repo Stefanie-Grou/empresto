@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import DropdownOptions from '../assets/Dropwdown';
+import { getSessionUser } from '../services/session';
 
 const PAGE_HEADER_DATA: Record<
   string,
@@ -36,8 +37,7 @@ const PAGE_HEADER_DATA: Record<
 export default function HeaderElement() {
   const location = useLocation();
 
-  const storedUser = typeof window !== 'undefined' ? localStorage.getItem('empresto_usuario') : null;
-  const user = storedUser ? JSON.parse(storedUser) : null;
+  const user = getSessionUser();
 
   const userName = user?.nome || user?.nomeUsuario || 'Administrador';
   const userRole = user?.perfil === 'Bibliotecário' ? 'Bibliotecário' : 'Admin';
