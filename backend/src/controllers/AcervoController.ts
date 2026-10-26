@@ -67,6 +67,42 @@ export class AcervoController {
       res.status(status).json({ erro: error.message });
     }
   }
+
+  public async listarFila(_req: Request, res: Response): Promise<void> {
+    try {
+      const resultado = await acervoService.listarFila();
+      res.status(200).json(resultado);
+    } catch (error: any) {
+      const status = error.statusCode || 500;
+      res.status(status).json({ erro: error.message || 'Erro ao consultar a fila de espera.' });
+    }
+  }
+
+  public async removerFila(req: Request, res: Response): Promise<void> {
+    try {
+      const acervoId = Number(req.params.acervoId);
+      const { nomeAluno, serie } = req.body || {};
+
+      const resultado = await acervoService.removerFila(acervoId, { nomeAluno, serie });
+      res.status(200).json(resultado);
+    } catch (error: any) {
+      const status = error.statusCode || 400;
+      res.status(status).json({ erro: error.message });
+    }
+  }
+
+  public async atualizarFila(req: Request, res: Response): Promise<void> {
+    try {
+      const acervoId = Number(req.params.acervoId);
+      const { nomeAluno, serie } = req.body || {};
+
+      const resultado = await acervoService.atualizarFila(acervoId, { nomeAluno, serie });
+      res.status(200).json(resultado);
+    } catch (error: any) {
+      const status = error.statusCode || 400;
+      res.status(status).json({ erro: error.message });
+    }
+  }
 }
 
 export const acervoController = new AcervoController();
