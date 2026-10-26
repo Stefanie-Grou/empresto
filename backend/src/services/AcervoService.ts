@@ -297,14 +297,22 @@ export class AcervoService {
       throw error;
     }
 
-    let idPessoa: number;
     const pessoaResult = await pool.query(
       'SELECT id_pessoa FROM pessoa WHERE LOWER(nome) = LOWER($1)',
       [dados.nomeAluno.trim()]
     );
 
+    let idPessoa: number;
     if (pessoaResult.rows.length > 0) {
       idPessoa = pessoaResult.rows[0].id_pessoa;
+
+      // Mantém a turma da pessoa sincronizada com a informada na reserva
+      if (dados.serie && dados.serie.trim()) {
+        await pool.query('UPDATE pessoa SET turma = $1 WHERE id_pessoa = $2', [
+          dados.serie.trim(),
+          idPessoa,
+        ]);
+      }
     } else {
       const novaPessoa = await pool.query(
         'INSERT INTO pessoa (nome, tipo_pessoa, turma) VALUES ($1, $2, $3) RETURNING id_pessoa',
@@ -326,6 +334,145 @@ export class AcervoService {
     return {
       posicaoFila: parseInt(posResult.rows[0].pos, 10),
       mensagem: 'Aluno adicionado à fila de espera.',
+    };
+  }
+
+  public async listarFila() {
+    const { rows } = await pool.query(`
+      SELECT
+        f.id_fila,
+        f.id_livro,
+        l.titulo as livro_titulo,
+        l.autor as livro_autor,
+        f.id_pessoa,
+        p.nome as pessoa_nome,
+        p.tipo_pessoa as pessoa_tipo,
+        p.turma as pessoa_turma,
+        f.data_requisicao,
+        (
+          SELECT count(*)::int
+          FROM fila_espera f2
+          WHERE f2.id_livro = f.id_livro
+            AND f2.id_fila <= f.id_fila
+        ) as posicao
+      FROM fila_espera f
+      JOIN livro l ON l.id_livro = f.id_livro
+      JOIN pessoa p ON p.id_pessoa = f.id_pessoa
+      ORDER BY f.id_livro ASC, f.id_fila ASC
+    `);
+
+    return rows.map((row) => {
+      const d = new Date(row.data_requisicao);
+      const dia = String(d.getUTCDate()).padStart(2, '0');
+      const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const ano = d.getUTCFullYear();
+      const requestDateFormatted = `${dia}/${mes}/${ano}`;
+
+      return {
+        id: row.id_fila,
+        id_fila: row.id_fila,
+        acervoId: row.id_livro,
+        bookId: row.id_livro,
+        bookTitle: row.livro_titulo,
+        bookAuthor: row.livro_autor,
+        studentId: row.id_pessoa,
+        studentName: row.pessoa_nome,
+        personType: row.pessoa_tipo || 'Aluno',
+        studentClass: (row.pessoa_turma || '').replace(/\uFFFD/g, 'º'),
+        posicao: row.posicao,
+        requestDate: requestDateFormatted,
+        dueDate: requestDateFormatted,
+        status: 'Aguardando',
+      };
+    });
+  }
+
+  public async removerFila(acervoId: number, dados: FilaEsperaDTO) {
+    if (isNaN(acervoId) || acervoId <= 0) {
+      const error: any = new Error('ID do acervo inválido.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!dados.nomeAluno || !dados.nomeAluno.trim()) {
+      const error: any = new Error('Nome do aluno é obrigatório.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const pessoaResult = await pool.query(
+      'SELECT id_pessoa FROM pessoa WHERE LOWER(nome) = LOWER($1)',
+      [dados.nomeAluno.trim()]
+    );
+
+    if (pessoaResult.rows.length === 0) {
+      const error: any = new Error('Aluno não encontrado na fila de espera.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const { rowCount } = await pool.query(
+      'DELETE FROM fila_espera WHERE id_livro = $1 AND id_pessoa = $2',
+      [acervoId, pessoaResult.rows[0].id_pessoa]
+    );
+
+    if (!rowCount) {
+      const error: any = new Error('Aluno não encontrado na fila de espera.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    return {
+      mensagem: 'Aluno removido da fila de espera.',
+    };
+  }
+
+  public async atualizarFila(acervoId: number, dados: FilaEsperaDTO) {
+    if (isNaN(acervoId) || acervoId <= 0) {
+      const error: any = new Error('ID do acervo inválido.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!dados.nomeAluno || !dados.nomeAluno.trim()) {
+      const error: any = new Error('Nome do aluno é obrigatório.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const pessoaResult = await pool.query(
+      'SELECT id_pessoa FROM pessoa WHERE LOWER(nome) = LOWER($1)',
+      [dados.nomeAluno.trim()]
+    );
+
+    if (pessoaResult.rows.length === 0) {
+      const error: any = new Error('Aluno não encontrado na fila de espera.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const idPessoa = pessoaResult.rows[0].id_pessoa;
+
+    const filaResult = await pool.query(
+      'SELECT id_fila FROM fila_espera WHERE id_livro = $1 AND id_pessoa = $2',
+      [acervoId, idPessoa]
+    );
+
+    if (filaResult.rows.length === 0) {
+      const error: any = new Error('Aluno não encontrado na fila de espera.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (dados.serie !== undefined) {
+      await pool.query('UPDATE pessoa SET turma = $1 WHERE id_pessoa = $2', [
+        dados.serie.trim() || null,
+        idPessoa,
+      ]);
+    }
+
+    return {
+      mensagem: 'Reserva atualizada com sucesso.',
     };
   }
 }
