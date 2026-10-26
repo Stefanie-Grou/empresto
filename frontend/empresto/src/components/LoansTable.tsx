@@ -52,8 +52,9 @@ export default function LoansTable({
               <tr className="text-xs uppercase font-semibold text-medium-gray border-b border-100-gray">
                 <th className="pb-4 font-medium text-center">CÓDIGO</th>
                 <th className="pb-4 font-medium">LIVRO</th>
-                <th className="pb-4 font-medium">ALUNO</th>
+                <th className="pb-4 font-medium">NOME</th>
                 <th className="pb-4 font-medium text-center">TURMA</th>
+                <th className="pb-4 font-medium text-center">TIPO</th>
                 <th className="pb-4 font-medium text-center">PRAZO</th>
                 <th className="pb-4 font-medium text-center">STATUS</th>
                 <th className="pb-4 font-medium text-center">AÇÕES</th>
@@ -63,7 +64,7 @@ export default function LoansTable({
             <tbody className="divide-y divide-gray-50">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-20 text-center">
+                  <td colSpan={8} className="py-20 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" style={{ animationDelay: '-0.3s' }} />
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" style={{ animationDelay: '-0.15s' }} />
@@ -73,7 +74,7 @@ export default function LoansTable({
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-xs text-gray-400">
+                  <td colSpan={8} className="py-16 text-center text-xs text-gray-400">
                     Nenhum empréstimo encontrado.
                   </td>
                 </tr>
@@ -82,7 +83,6 @@ export default function LoansTable({
 
                 return (
                   <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                    {/* CÓDIGO */}
                     <td className="py-3.5 pl-2 text-center text-gray-600 font-medium">
                       {item.id}
                     </td>
@@ -115,6 +115,10 @@ export default function LoansTable({
 
                     <td className="py-3.5 text-center text-gray-600">
                       {item.studentClass || '-'}
+                    </td>
+
+                    <td className="py-3.5 text-center text-gray-600 font-medium">
+                      {item.personType || 'Aluno'}
                     </td>
 
                     <td className="py-3.5 text-center text-gray-600 font-medium">

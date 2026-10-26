@@ -58,7 +58,7 @@ const LOAN_FILTER_FIELDS: FieldConfig<LoanFilterState>[] = [
     options: [
       { label: 'Data de entrega (crescente)', value: 'prazo_asc' },
       { label: 'Data de entrega (decrescente)', value: 'prazo_desc' },
-      { label: 'Nome do Aluno (A-Z)', value: 'nome_asc' },
+      { label: 'Nome (A-Z)', value: 'nome_asc' },
     ],
   },
 ];
@@ -79,14 +79,12 @@ export default function BookLendingPage() {
   const [selectedLoan, setSelectedLoan] = useState<LentItem | null>(null);
   const [modalMode, setModalMode] = useState<'view' | 'edit' | 'cancel'>('view');
 
-  // Carrega os empréstimos do backend (GET /api/v1/emprestimos)
   const loadLoans = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await loanService.getAll();
       setLoans(data.map((loan) => toLentItem(loan as Parameters<typeof toLentItem>[0])));
     } catch {
-      // O toast de erro é exibido pelo loanService
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +110,7 @@ export default function BookLendingPage() {
 
     return loans
       .filter((item) => {
-        if (filters.status === 'em_dia' && item.status.toLowerCase() !== 'em dia') return false;
+        if (filters.status === 'em_dia' && item.status.toLowerCase() !== 'em dia' && item.status.toLowerCase() !== 'pendente') return false;
         if (filters.status === 'atrasado' && item.status.toLowerCase() !== 'atrasado') return false;
 
         if (filters.periodo !== 'todos') {
@@ -137,11 +135,11 @@ export default function BookLendingPage() {
         const dateB = parseDueDate(b.dueDate).getTime();
 
         if (filters.ordenacao === 'prazo_asc') {
-          return dateA - dateB; // Mais próximos do vencimento primeiro
+          return dateA - dateB;
         }
 
         if (filters.ordenacao === 'prazo_desc') {
-          return dateB - dateA; // Mais distantes primeiro
+          return dateB - dateA;
         }
 
         return 0;
@@ -153,6 +151,8 @@ export default function BookLendingPage() {
       item.bookTitle.toLowerCase().includes(term) ||
       item.bookAuthor.toLowerCase().includes(term) ||
       item.studentName.toLowerCase().includes(term) ||
+      (item.personType && item.personType.toLowerCase().includes(term)) ||
+      (item.studentClass && item.studentClass.toLowerCase().includes(term)) ||
       String(item.id).toLowerCase().includes(term),
     []
   );
@@ -171,7 +171,6 @@ export default function BookLendingPage() {
 
   return (
     <div className="flex flex-col gap-6 p-8 relative">
-      {/* Barra de Ações com Gatilho do Filtro Existente */}
       <ItemsActionBarHeader
         title="Gestão de Empréstimos"
         subtitle="Registre saídas, dê baixa nas devoluções e acompanhe quem está com cada item."
@@ -183,7 +182,6 @@ export default function BookLendingPage() {
         onFilterClick={() => setIsFilterOpen((prev) => !prev)}
       />
 
-      {/* Popover/Modal do Filtro Renderizado logo abaixo do cabeçalho */}
       <GenericFilterDropdown
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
@@ -193,7 +191,6 @@ export default function BookLendingPage() {
         onChange={(newFilters) => setFilters(newFilters)}
       />
 
-      {/* Tabela de Empréstimos */}
       <LoansTable
         items={paginatedItems}
         isLoading={isLoading}
@@ -217,7 +214,6 @@ export default function BookLendingPage() {
         }}
       />
 
-      {/* Modais de Ação */}
       <LoanModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -257,6 +253,7 @@ export default function BookLendingPage() {
             acervoId: formData.acervoId,
             studentName: formData.studentName,
             studentClass: formData.studentClass,
+            personType: formData.personType,
             dueDate: formData.dueDate,
           });
           setIsCreateModalOpen(false);
