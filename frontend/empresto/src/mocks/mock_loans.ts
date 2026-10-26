@@ -2,7 +2,7 @@ import type { LoanItem } from "../interfaces/LoanItem";
 
 export const MOCK_LOANS: LoanItem[] = [
   {
-    id: '1',
+    id: 'mock-1',
     acervoId: '1',
     bookTitle: 'O Auto da Compadecida',
     bookAuthor: 'Ariano Suassuna',
@@ -13,7 +13,7 @@ export const MOCK_LOANS: LoanItem[] = [
     itemType: 'Livro'
   },
   {
-    id: '2',
+    id: 'mock-2',
     acervoId: '2',
     bookTitle: 'Turma da Mônica Jovem',
     bookAuthor: 'Maurício de Sousa',
@@ -24,7 +24,7 @@ export const MOCK_LOANS: LoanItem[] = [
     itemType: 'Quadrinho'
   },
   {
-    id: '3',
+    id: 'mock-3',
     acervoId: '3',
     bookTitle: 'A Hipótese do Amor',
     bookAuthor: 'Ali Hazelwood',
@@ -35,7 +35,7 @@ export const MOCK_LOANS: LoanItem[] = [
     itemType: 'Livro'
   },
   {
-    id: '4',
+    id: 'mock-4',
     acervoId: '4',
     bookTitle: 'A morte de Ivan Ilitch ',
     bookAuthor: 'Liev Tolstói',
@@ -46,7 +46,7 @@ export const MOCK_LOANS: LoanItem[] = [
     itemType: 'Livro'
   },
   {
-    id: '5',
+    id: 'mock-5',
     acervoId: '5',
     bookTitle: 'Coraline',
     bookAuthor: 'Neil Gaiman',
@@ -55,8 +55,9 @@ export const MOCK_LOANS: LoanItem[] = [
     userType: 'Aluno',
     dueDate: '15/09/2026',
     itemType: 'Livro'
-  }, {
-    id: '6',
+  },
+  {
+    id: 'mock-6',
     acervoId: '6',
     bookTitle: 'Biologia de Campbell',
     bookAuthor: 'Andrew Reece',

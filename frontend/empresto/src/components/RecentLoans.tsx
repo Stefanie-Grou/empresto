@@ -1,3 +1,4 @@
+import { Icon } from '@iconify/react';
 import { MOCK_LOANS } from "../mocks/mock_loans";
 import type { LoanItem } from "../interfaces/LoanItem";
 
@@ -32,10 +33,12 @@ export default function RecentLoans({ loans = MOCK_LOANS }: RecentLoansProps) {
                                             <img
                                                 src={loan.coverUrl}
                                                 alt={loan.bookTitle}
-                                                className="w-10 h-12 rounded"
+                                                className="w-10 h-12 rounded object-cover"
                                             />
                                         ) : (
-                                            <div className="w-10 h-12" />
+                                            <div className="w-10 h-12 rounded bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                                                <Icon icon="lucide:book-open" className="w-5 h-5" />
+                                            </div>
                                         )}
                                         <div className="flex flex-col">
                                             <span className="font-bold text-medium-gray">

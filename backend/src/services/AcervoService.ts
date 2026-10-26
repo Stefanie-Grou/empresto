@@ -475,6 +475,14 @@ export class AcervoService {
       mensagem: 'Reserva atualizada com sucesso.',
     };
   }
+
+  public async listarPessoas() {
+    const { rows } = await pool.query(
+      `SELECT id_pessoa as id, nome, tipo_pessoa as "tipoPessoa", COALESCE(turma, '') as turma FROM pessoa ORDER BY nome ASC;`
+    );
+    return rows;
+
+  }
 }
 
 export const acervoService = new AcervoService();

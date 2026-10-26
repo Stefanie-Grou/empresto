@@ -18,6 +18,15 @@ export class AcervoController {
     }
   }
 
+  public async listarPessoas(req: Request, res: Response): Promise<void> {
+    try {
+      const pessoas = await acervoService.listarPessoas();
+      res.status(200).json(pessoas);
+    } catch (error: any) {
+      res.status(500).json({ erro: error.message || 'Erro ao consultar pessoas.' });
+    }
+  }
+
   public async cadastrar(req: Request, res: Response): Promise<void> {
     try {
       const resultado = await acervoService.cadastrar(req.body);

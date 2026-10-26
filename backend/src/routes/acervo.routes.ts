@@ -4,6 +4,7 @@ import { acervoController } from '../controllers/AcervoController.js';
 const router = Router();
 
 router.get('/', (req, res) => acervoController.listar(req, res));
+router.get('/pessoas', (req, res) => acervoController.listarPessoas(req, res));
 router.post('/', (req, res) => acervoController.cadastrar(req, res));
 router.get('/fila', (req, res) => acervoController.listarFila(req, res));
 router.put('/:id', (req, res) => acervoController.atualizar(req, res));
