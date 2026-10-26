@@ -45,8 +45,41 @@ export function toLentItem(loan: LoanItem): LentItem {
     bookAuthor: loan.bookAuthor,
     coverUrl: loan.coverUrl,
     studentName,
+    personType: (loan as any).personType || (loan as any).tipoPessoa || (loan as any).userType,
     studentClass,
     dueDate,
+    rawDueDate: (loan as any).rawDueDate,
     status,
+  };
+}
+
+// Item da fila de espera (GET /api/v1/acervo/fila)
+export interface WaitlistEntry {
+  id: string | number;
+  id_fila?: number;
+  acervoId?: string | number;
+  bookId?: string | number;
+  bookTitle: string;
+  bookAuthor: string;
+  studentName: string;
+  personType?: string;
+  studentClass?: string;
+  posicao?: number;
+  requestDate?: string;
+  dueDate?: string;
+  status?: string;
+}
+
+export function toWaitlistLentItem(entry: WaitlistEntry): LentItem {
+  return {
+    id: entry.id,
+    acervoId: entry.acervoId ?? entry.bookId,
+    bookTitle: entry.bookTitle,
+    bookAuthor: entry.bookAuthor,
+    studentName: entry.studentName || 'Não informado',
+    personType: entry.personType,
+    studentClass: entry.studentClass || '-',
+    dueDate: entry.requestDate || entry.dueDate || '-',
+    status: entry.status || 'Aguardando',
   };
 }

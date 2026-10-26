@@ -8,5 +8,6 @@ export interface LentItem {
   personType?: 'Aluno' | 'Professor' | 'Funcionário' | string;
   studentClass?: string; 
   dueDate: string;     
+  rawDueDate?: string;
   status: 'Pendente' | 'Atrasado' | 'Devolvido' | string;
 }

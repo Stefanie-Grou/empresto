@@ -1,8 +1,10 @@
 import type { InventoryItem } from '../interfaces/InventoryItem';
 import { ENDPOINTS } from './apiConfig';
 import type { BookOption } from '../interfaces/BookOption';
+import type { WaitlistEntry } from '../utils/adapters';
 import { type WaitlistPayload } from '../interfaces/WaitlistPayload';
 import { toast } from './toastStore';
+import { throwApiError, errorMessage } from './apiError';
 
 export interface InventoryPayload {
   titulo: string;
@@ -30,7 +32,7 @@ export function toInventoryPayload(data: Omit<InventoryItem, 'id' | 'available'>
 }
 
 function notifyError(title: string, error: unknown, fallback: string) {
-  toast.error(title, error instanceof Error && error.message ? error.message : fallback);
+  toast.error(title, errorMessage(error, fallback));
 }
 
 export const inventoryService = {
@@ -38,57 +40,66 @@ export const inventoryService = {
     const payload = toInventoryPayload(itemData);
     const url = ENDPOINTS.INVENTORY;
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      const error = new Error('Erro ao cadastrar item no acervo');
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível cadastrar o item no acervo.');
+      }
+
+      toast.success('Item cadastrado', 'Novo exemplar adicionado ao acervo com sucesso.');
+      return response.json();
+    } catch (error) {
       notifyError('Erro ao cadastrar', error, 'Não foi possível cadastrar o item no acervo.');
       throw error;
     }
-
-    toast.success('Item cadastrado', 'Novo exemplar adicionado ao acervo com sucesso.');
-    return response.json();
   },
 
   async update(id: string | number, itemData: Omit<InventoryItem, 'id' | 'available'>) {
     const payload = toInventoryPayload(itemData);
     const url = `${ENDPOINTS.INVENTORY}/${id}`;
 
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      const error = new Error('Erro ao atualizar item do acervo');
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível atualizar o item do acervo.');
+      }
+
+      toast.success('Item atualizado', 'As alterações do item foram salvas com sucesso.');
+      return response.json();
+    } catch (error) {
       notifyError('Erro ao atualizar', error, 'Não foi possível atualizar o item do acervo.');
       throw error;
     }
-
-    toast.success('Item atualizado', 'As alterações do item foram salvas com sucesso.');
-    return response.json();
   },
 
   async delete(id: string | number) {
     const url = `${ENDPOINTS.INVENTORY}/${id}`;
 
-    const response = await fetch(url, {
-      method: 'DELETE',
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'DELETE',
+      });
 
-    if (!response.ok) {
-      const error = new Error('Erro ao excluir item do acervo');
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível remover o item do acervo.');
+      }
+
+      toast.success('Item removido', 'O exemplar foi removido do acervo com sucesso.');
+      return response.json();
+    } catch (error) {
       notifyError('Erro ao remover', error, 'Não foi possível remover o item do acervo.');
       throw error;
     }
-
-    toast.success('Item removido', 'O exemplar foi removido do acervo com sucesso.');
-    return response.json();
   },
 
   async getAll(): Promise<InventoryItem[]> {
@@ -98,7 +109,7 @@ export const inventoryService = {
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error('Erro ao carregar acervo');
+        await throwApiError(response, 'Não foi possível carregar os itens do acervo.');
       }
 
       return await response.json();
@@ -109,15 +120,49 @@ export const inventoryService = {
   },
 
   async searchBooks(query: string): Promise<BookOption[]> {
-    const response = await fetch(`/api/v1/acervos/search?q=${encodeURIComponent(query)}`);
+    const url = `${ENDPOINTS.INVENTORY}?busca=${encodeURIComponent(query)}`;
 
-    if (!response.ok) {
-      const error = new Error('Erro ao buscar acervo');
+    try {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível buscar os livros do acervo.');
+      }
+
+      const data: BookOption[] = await response.json();
+
+      // O endpoint devolve o item completo do acervo; normaliza para o dropdown
+      // e evita sugestões repetidas para o mesmo título.
+      const options = data.map((book) => ({
+        id: book.id,
+        bookTitle: book.bookTitle,
+        bookAuthor: book.bookAuthor,
+        itemType: book.itemType,
+        available: book.available,
+      }));
+
+      return Array.from(new Map(options.map((book) => [book.bookTitle, book])).values());
+    } catch (error) {
       notifyError('Erro ao buscar livros', error, 'Não foi possível buscar os livros do acervo.');
       throw error;
     }
+  },
 
-    return response.json();
+  async getWaitlist(): Promise<WaitlistEntry[]> {
+    const url = `${ENDPOINTS.INVENTORY}/fila`;
+
+    try {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível carregar a fila de espera.');
+      }
+
+      return await response.json();
+    } catch (error) {
+      notifyError('Erro ao carregar reservas', error, 'Não foi possível carregar a fila de espera.');
+      throw error;
+    }
   },
 
   async addToWaitlist(acervoId: string | number, payload: WaitlistPayload) {
@@ -130,7 +175,9 @@ export const inventoryService = {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) throw new Error('Erro ao adicionar aluno à fila de espera.');
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível adicionar o aluno à fila de espera.');
+      }
 
       toast.success('Reserva cadastrada', 'O aluno entrou na fila de espera com sucesso.');
       return response.json();
@@ -143,38 +190,44 @@ export const inventoryService = {
   async removeFromWaitlist(acervoId: string | number, payload: RemoveWaitlistPayload) {
     const url = `${ENDPOINTS.INVENTORY}/${acervoId}/fila`;
 
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      const error = new Error('Erro ao remover aluno da fila de espera.');
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível remover o aluno da fila de espera.');
+      }
+
+      toast.success('Reserva removida', 'O aluno foi removido da fila de espera.');
+      return response.json();
+    } catch (error) {
       notifyError('Erro ao remover da fila', error, 'Não foi possível remover o aluno da fila de espera.');
       throw error;
     }
-
-    toast.success('Reserva removida', 'O aluno foi removido da fila de espera.');
-    return response.json();
   },
 
   async updateWaitlist(acervoId: string | number, payload: WaitlistPayload) {
     const url = `${ENDPOINTS.INVENTORY}/${acervoId}/fila`;
 
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      const error = new Error('Erro ao atualizar a reserva na fila de espera.');
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível atualizar os dados da reserva.');
+      }
+
+      toast.success('Reserva atualizada', 'Os dados da reserva foram salvos com sucesso.');
+      return response.json();
+    } catch (error) {
       notifyError('Erro ao atualizar reserva', error, 'Não foi possível atualizar os dados da reserva.');
       throw error;
     }
-
-    toast.success('Reserva atualizada', 'Os dados da reserva foram salvos com sucesso.');
-    return response.json();
   },
 };

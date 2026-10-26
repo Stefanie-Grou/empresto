@@ -5,6 +5,7 @@ import Pagination from './Pagination';
 interface LoansTableProps {
   title?: string;
   items: LentItem[];
+  isLoading?: boolean;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -16,6 +17,7 @@ interface LoansTableProps {
 export default function LoansTable({
   title = 'Empréstimos recentes',
   items,
+  isLoading = false,
   currentPage,
   totalPages,
   onPageChange,
@@ -59,7 +61,23 @@ export default function LoansTable({
             </thead>
 
             <tbody className="divide-y divide-gray-50">
-              {items.map((item) => {
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="py-20 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" style={{ animationDelay: '-0.3s' }} />
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" style={{ animationDelay: '-0.15s' }} />
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" />
+                    </div>
+                  </td>
+                </tr>
+              ) : items.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-16 text-center text-xs text-gray-400">
+                    Nenhum empréstimo encontrado.
+                  </td>
+                </tr>
+              ) : items.map((item) => {
                 const statusStyle = getStatusColor(item.status);
 
                 return (
