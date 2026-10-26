@@ -5,6 +5,7 @@ import Pagination from './Pagination';
 interface LoansTableProps {
   title?: string;
   items: LentItem[];
+  isLoading?: boolean;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -16,6 +17,7 @@ interface LoansTableProps {
 export default function ReservationsTable({
   title = 'Fila de Espera',
   items,
+  isLoading = false,
   currentPage,
   totalPages,
   onPageChange,
@@ -46,7 +48,23 @@ export default function ReservationsTable({
             </thead>
 
             <tbody className="divide-y divide-gray-50">
-              {items.map((item) => {
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="py-20 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" style={{ animationDelay: '-0.3s' }} />
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" style={{ animationDelay: '-0.15s' }} />
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-800 animate-bounce" />
+                    </div>
+                  </td>
+                </tr>
+              ) : items.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-16 text-center text-xs text-gray-400">
+                    Nenhuma reserva encontrada.
+                  </td>
+                </tr>
+              ) : items.map((item) => {
 
                 return (
                   <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">

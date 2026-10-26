@@ -1,6 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import ItemsActionBarHeader from '../components/ItemsActionBarHeader';
-import { MOCK_LOANS } from '../mocks/mock_loans';
 import { usePaginatedSearch } from '../components/PaginatedSearch';
 import LoansTable from '../components/LoansTable';
 import { toLentItem } from '../utils/adapters';
@@ -65,7 +64,8 @@ const LOAN_FILTER_FIELDS: FieldConfig<LoanFilterState>[] = [
 ];
 
 export default function BookLendingPage() {
-  const initialLentItems = useMemo(() => MOCK_LOANS.map(toLentItem), []);
+  const [loans, setLoans] = useState<LentItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<LoanFilterState>({
@@ -78,6 +78,23 @@ export default function BookLendingPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<LentItem | null>(null);
   const [modalMode, setModalMode] = useState<'view' | 'edit' | 'cancel'>('view');
+
+  // Carrega os empréstimos do backend (GET /api/v1/emprestimos)
+  const loadLoans = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await loanService.getAll();
+      setLoans(data.map((loan) => toLentItem(loan as Parameters<typeof toLentItem>[0])));
+    } catch {
+      // O toast de erro é exibido pelo loanService
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadLoans();
+  }, [loadLoans]);
 
   function parseDueDate(dateStr: string): Date {
     if (!dateStr) return new Date(0);
@@ -93,7 +110,7 @@ export default function BookLendingPage() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    return initialLentItems
+    return loans
       .filter((item) => {
         if (filters.status === 'em_dia' && item.status.toLowerCase() !== 'em dia') return false;
         if (filters.status === 'atrasado' && item.status.toLowerCase() !== 'atrasado') return false;
@@ -129,7 +146,16 @@ export default function BookLendingPage() {
 
         return 0;
       });
-  }, [initialLentItems, filters]);
+  }, [loans, filters]);
+
+  const searchPredicate = useCallback(
+    (item: LentItem, term: string) =>
+      item.bookTitle.toLowerCase().includes(term) ||
+      item.bookAuthor.toLowerCase().includes(term) ||
+      item.studentName.toLowerCase().includes(term) ||
+      String(item.id).toLowerCase().includes(term),
+    []
+  );
 
   const {
     searchTerm,
@@ -140,11 +166,7 @@ export default function BookLendingPage() {
     setCurrentPage,
   } = usePaginatedSearch<LentItem>({
     items: filteredLentItems,
-    searchPredicate: (item, term) =>
-      item.bookTitle.toLowerCase().includes(term) ||
-      item.bookAuthor.toLowerCase().includes(term) ||
-      item.studentName.toLowerCase().includes(term) ||
-      String(item.id).toLowerCase().includes(term),
+    searchPredicate,
   });
 
   return (
@@ -168,12 +190,13 @@ export default function BookLendingPage() {
         title="Filtrar Empréstimos"
         fields={LOAN_FILTER_FIELDS}
         filterState={filters}
-        onChange={setFilters}
+        onChange={(newFilters) => setFilters(newFilters)}
       />
 
       {/* Tabela de Empréstimos */}
       <LoansTable
         items={paginatedItems}
+        isLoading={isLoading}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
@@ -189,24 +212,25 @@ export default function BookLendingPage() {
         }}
         onDelete={(item) => {
           setSelectedLoan(item);
-          setModalMode('cancel'); 
+          setModalMode('cancel');
           setIsModalOpen(true);
         }}
-        onReturn={(item) => loanService.returnLoan(item.id)}
       />
 
       {/* Modais de Ação */}
       <LoanModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={(data) => {
-          if (modalMode === 'cancel') loanService.delete(data.id);
-          else if (modalMode === 'edit') loanService.update(data.id, data);
+        onSave={async (data) => {
+          if (modalMode === 'cancel') await loanService.delete(data.id);
+          else if (modalMode === 'edit') await loanService.update(data.id, data);
           setIsModalOpen(false);
+          await loadLoans();
         }}
-        onRenew={(data) => {
-          loanService.renew(data.id, data);
+        onRenew={async (data) => {
+          await loanService.renew(data.id, data);
           setIsModalOpen(false);
+          await loadLoans();
         }}
         loan={selectedLoan}
         isReadOnly={modalMode !== 'edit'}
@@ -228,14 +252,15 @@ export default function BookLendingPage() {
       <CreateLoanModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSave={(formData) => {
-          loanService.create({
+        onSave={async (formData) => {
+          await loanService.create({
             acervoId: formData.acervoId,
             studentName: formData.studentName,
             studentClass: formData.studentClass,
             dueDate: formData.dueDate,
           });
           setIsCreateModalOpen(false);
+          await loadLoans();
         }}
       />
     </div>

@@ -1,13 +1,19 @@
 import type { LentItem } from '../interfaces/LentItem';
 import { ENDPOINTS } from './apiConfig';
 import { toast } from './toastStore';
+import { throwApiError, errorMessage } from './apiError';
 
-export interface UpdateLoanPayload {
-  acervoId: number;
+// Contrato do backend (NovoEmprestimoDTO / AtualizarEmprestimoDTO):
+// nomeAluno, turma, livroId, prazoDevolucao
+export interface LoanPayload {
   nomeAluno: string;
-  serie: string;
-  dataDevolucaoPrevista: string;
+  turma: string;
+  livroId: number;
+  prazoDevolucao: string;
 }
+
+// Mantido como alias para não quebrar importações existentes
+export type UpdateLoanPayload = LoanPayload;
 
 export interface DeleteLoanPayload {
   id: number | string;
@@ -25,7 +31,7 @@ function formatDateToISO(dateStr: string): string {
 }
 
 function notifyError(title: string, error: unknown, fallback: string) {
-  toast.error(title, error instanceof Error && error.message ? error.message : fallback);
+  toast.error(title, errorMessage(error, fallback));
 }
 
 export function addDaysToDate(dateStr: string, days: number = 7): string {
@@ -50,24 +56,24 @@ export function addDaysToDate(dateStr: string, days: number = 7): string {
   return `${year}-${month}-${day}`;
 }
 
-export function toUpdateLoanPayload(item: LentItem, isRenew: boolean = false): UpdateLoanPayload {
+export function toUpdateLoanPayload(item: LentItem, isRenew: boolean = false): LoanPayload {
   const targetDate = isRenew ? addDaysToDate(item.dueDate, 7) : formatDateToISO(item.dueDate);
 
   return {
-    acervoId: Number(item.id),
     nomeAluno: item.studentName.trim(),
-    serie: item.studentClass.trim(),
-    dataDevolucaoPrevista: targetDate,
+    turma: (item.studentClass || '').trim(),
+    livroId: Number(item.acervoId ?? item.id),
+    prazoDevolucao: targetDate,
   };
 }
 
 export const loanService = {
   async create(data: { acervoId: number; studentName: string; studentClass: string; dueDate: string }) {
-    const payload: UpdateLoanPayload = {
-      acervoId: Number(data.acervoId),
+    const payload: LoanPayload = {
       nomeAluno: data.studentName.trim(),
-      serie: data.studentClass.trim(),
-      dataDevolucaoPrevista: formatDateToISO(data.dueDate),
+      turma: data.studentClass.trim(),
+      livroId: Number(data.acervoId),
+      prazoDevolucao: formatDateToISO(data.dueDate),
     };
 
     try {
@@ -77,12 +83,29 @@ export const loanService = {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) throw new Error('Erro ao registrar novo empréstimo');
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível registrar o empréstimo.');
+      }
 
       toast.success('Empréstimo registrado', 'O novo empréstimo foi cadastrado com sucesso.');
       return response.json();
     } catch (error) {
       notifyError('Erro ao registrar empréstimo', error, 'Não foi possível registrar o empréstimo.');
+      throw error;
+    }
+  },
+
+  async getAll(): Promise<unknown[]> {
+    try {
+      const response = await fetch(ENDPOINTS.LOANS);
+
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível carregar os empréstimos.');
+      }
+
+      return await response.json();
+    } catch (error) {
+      notifyError('Erro ao carregar empréstimos', error, 'Não foi possível carregar os empréstimos.');
       throw error;
     }
   },
@@ -98,7 +121,9 @@ export const loanService = {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) throw new Error('Erro ao atualizar registro de empréstimo');
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível atualizar o empréstimo.');
+      }
 
       toast.success('Empréstimo atualizado', 'As alterações do empréstimo foram salvas com sucesso.');
       return response.json();
@@ -119,7 +144,9 @@ export const loanService = {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) throw new Error('Erro ao renovar empréstimo');
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível renovar o empréstimo.');
+      }
 
       toast.success('Empréstimo renovado', 'O prazo de devolução foi estendido com sucesso.');
       return response.json();
@@ -141,7 +168,7 @@ export const loanService = {
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao registrar a devolução do empréstimo');
+        await throwApiError(response, 'Não foi possível registrar a devolução.');
       }
 
       toast.success('Devolução registrada', 'O empréstimo foi baixado com sucesso.');

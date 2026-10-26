@@ -1,9 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import ItemsActionBarHeader from '../components/ItemsActionBarHeader';
-import { MOCK_LOANS } from '../mocks/mock_loans';
 import { usePaginatedSearch } from '../components/PaginatedSearch';
 import ReservationsTable from '../components/ReservationsTable';
-import { toLentItem } from '../utils/adapters';
+import { toWaitlistLentItem } from '../utils/adapters';
 import type { LentItem } from '../interfaces/LentItem';
 import GenericFilterDropdown, { type FieldConfig, type FilterOption } from '../components/GenericFilterDopdown';
 import CreateReservationModal, { type CreateReservationFormData } from '../components/modals/CreateReservationModal';
@@ -21,7 +20,8 @@ export interface ReservationFilterState {
 }
 
 export default function ReservationPage() {
-  const lentItems = useMemo(() => MOCK_LOANS.map(toLentItem), []);
+  const [lentItems, setLentItems] = useState<LentItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
@@ -34,6 +34,23 @@ export default function ReservationPage() {
     ordenacao: 'aluno_asc',
   });
 
+  // Carrega a fila de espera do backend (GET /api/v1/acervo/fila)
+  const loadReservations = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await inventoryService.getWaitlist();
+      setLentItems(data.map(toWaitlistLentItem));
+    } catch {
+      // O toast de erro é exibido pelo inventoryService
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadReservations();
+  }, [loadReservations]);
+
   const handleSaveNewReservation = async (formData: CreateReservationFormData) => {
     try {
       const payload: WaitlistPayload = {
@@ -43,6 +60,7 @@ export default function ReservationPage() {
 
       await inventoryService.addToWaitlist(formData.acervoId, payload);
       setIsCreateModalOpen(false);
+      await loadReservations();
     } catch {
       // O toast de erro é exibido pelo inventoryService
     }
@@ -63,6 +81,7 @@ export default function ReservationPage() {
         await inventoryService.removeFromWaitlist(acervoId, payload);
 
         setIsActionModalOpen(false);
+        await loadReservations();
       } catch {
         // O toast de erro é exibido pelo inventoryService
       }
@@ -76,6 +95,7 @@ export default function ReservationPage() {
         await inventoryService.updateWaitlist(acervoId, payload);
 
         setIsActionModalOpen(false);
+        await loadReservations();
       } catch {
         // O toast de erro é exibido pelo inventoryService
       }
@@ -133,6 +153,16 @@ export default function ReservationPage() {
       });
   }, [lentItems, filters]);
 
+  const searchPredicate = useCallback(
+    (item: LentItem, term: string) =>
+      item.bookTitle.toLowerCase().includes(term) ||
+      item.bookAuthor.toLowerCase().includes(term) ||
+      item.studentName.toLowerCase().includes(term) ||
+      (item.studentClass?.toLowerCase().includes(term) ?? false) ||
+      String(item.id).toLowerCase().includes(term),
+    []
+  );
+
   const {
     searchTerm,
     currentPage,
@@ -142,12 +172,7 @@ export default function ReservationPage() {
     setCurrentPage,
   } = usePaginatedSearch<LentItem>({
     items: filteredReservations,
-    searchPredicate: (item, term) =>
-      item.bookTitle.toLowerCase().includes(term) ||
-      item.bookAuthor.toLowerCase().includes(term) ||
-      item.studentName.toLowerCase().includes(term) ||
-      item.studentClass?.toLowerCase().includes(term) ||
-      String(item.id).toLowerCase().includes(term),
+    searchPredicate,
   });
 
   return (
@@ -174,6 +199,7 @@ export default function ReservationPage() {
 
       <ReservationsTable
         items={paginatedItems}
+        isLoading={isLoading}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
