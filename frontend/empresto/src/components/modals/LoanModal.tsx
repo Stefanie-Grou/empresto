@@ -16,6 +16,28 @@ interface LoanModalProps {
   submitLabel?: string;
 }
 
+// Campos que o formulário realmente permite alterar (nome, turma, livro, prazo)
+function toEditableValues(item: LentItem) {
+  return {
+    studentName: (item.studentName || '').trim(),
+    studentClass: (item.studentClass || '').trim(),
+    bookTitle: (item.bookTitle || '').trim(),
+    dueDate: (item.dueDate || '').trim(),
+  };
+}
+
+function hasChanges(current: LentItem, original: LentItem): boolean {
+  const a = toEditableValues(current);
+  const b = toEditableValues(original);
+
+  return (
+    a.studentName !== b.studentName ||
+    a.studentClass !== b.studentClass ||
+    a.bookTitle !== b.bookTitle ||
+    a.dueDate !== b.dueDate
+  );
+}
+
 // Campos que o formulário realmente permite alterar
 function toEditableValues(item: LentItem) {
   return {
@@ -145,7 +167,19 @@ export default function LoanModal({
       isOpen={isOpen}
       onClose={onClose}
       title={title}
-      onSubmit={handleSubmit}
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (submitLabel === 'Devolver' && onReturn) {
+          onReturn(formData);
+          return;
+        }
+        // Nada mudou: fecha o modal sem chamar o endpoint
+        if (!isDirty) {
+          onClose();
+          return;
+        }
+        onSave(formData);
+      }}
       warningMessage={warningMessage}
       submitLabel={shouldShowSubmitButton ? submitLabel : undefined}
       extraActions={
@@ -201,6 +235,19 @@ export default function LoanModal({
             onChange={(e) => handleInputChange('studentClass', e.target.value)}
             disabled={isReadOnly}
             readOnly={isReadOnly}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-12 gap-3 items-center">
+        <div className="col-span-7">
+          {/* O livro não é editável: para trocar, exclua e registre um novo empréstimo */}
+          <TextInput
+            label="Livro"
+            value={formData.bookTitle}
+            onChange={() => {}}
+            disabled
+            readOnly
           />
         </div>
         <div className="col-span-5">
