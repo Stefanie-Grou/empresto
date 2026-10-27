@@ -12,7 +12,13 @@ export const pool = new pg.Pool({
   },
   max: 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 30000,
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
+});
+
+pool.on('error', (err) => {
+  console.error('Erro no pool PostgreSQL:', err.message);
 });
 
 export async function testConnection(): Promise<boolean> {
