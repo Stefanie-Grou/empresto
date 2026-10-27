@@ -9,6 +9,7 @@ import Toast from '../components/Toast';
 import NewLoanModal from '../components/NewLoanModal';
 import { MOCK_LOANS } from '../mocks/mock_loans';
 import type { LoanItem } from '../interfaces/LoanItem';
+import { API_BASE_URL, ENDPOINTS } from '../services/apiConfig';
 
 interface DashboardStats {
   acervo: {
@@ -37,7 +38,7 @@ export default function DashboardPage() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/v1/dashboard/stats');
+      const res = await fetch(`${API_BASE_URL}/dashboard/stats`);
       if (res.ok) {
         const data = await res.json();
         setStats(data);
@@ -49,11 +50,10 @@ export default function DashboardPage() {
 
   const fetchLoans = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/v1/emprestimos');
+      const res = await fetch(ENDPOINTS.LOANS);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          // Se o banco retornou dados, exibe somente os registros reais
           const dbLoans: LoanItem[] = data.map((item: any) => ({
             id: String(item.id ?? item.id_emprestimo),
             bookTitle: item.bookTitle || item.livroTitulo || item.livro_titulo || 'Livro',
@@ -101,7 +101,6 @@ export default function DashboardPage() {
     }
   }, [location, navigate]);
 
-  // Formata número com separador de milhar (ex: 1234 → "1.234")
   const fmt = (n: number | undefined | null): string => {
     if (n == null) return '—';
     return n.toLocaleString('pt-BR');
@@ -174,4 +173,4 @@ export default function DashboardPage() {
       )}
     </div>
   );
-}
+}

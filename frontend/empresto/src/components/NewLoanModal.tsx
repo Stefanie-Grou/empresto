@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '@iconify/react';
 import Toast, { type ToastType } from './Toast';
+import { ENDPOINTS } from '../services/apiConfig';
 
 interface BookOption {
   id: number;
@@ -72,17 +73,14 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
       : selectedGrade
     : '';
 
-  // Carregar livros e pessoas ao abrir o modal
   useEffect(() => {
     if (!isOpen) return;
 
-    // Data padrão: hoje + 7 dias
     const defaultDate = new Date();
     defaultDate.setDate(defaultDate.getDate() + 7);
     const dateFormatted = defaultDate.toISOString().split('T')[0];
     setPrazoDevolucao(dateFormatted);
 
-    // Resetar formulário
     setLivroId('');
     setNomePessoa('');
     setSelectedGrade('');
@@ -94,8 +92,8 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
       setIsLoadingData(true);
       try {
         const [resBooks, resPeople] = await Promise.all([
-          fetch('http://localhost:8080/api/v1/acervo').catch(() => null),
-          fetch('http://localhost:8080/api/v1/acervo/pessoas').catch(() => null),
+          fetch(ENDPOINTS.INVENTORY).catch(() => null),
+          fetch(`${ENDPOINTS.INVENTORY}/pessoas`).catch(() => null),
         ]);
 
         if (resBooks && resBooks.ok) {
@@ -119,7 +117,6 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
 
   if (!isOpen) return null;
 
-  // Quando o usuário seleciona ou digita o nome de alguém já cadastrado
   const handleNomeChange = (valor: string) => {
     setNomePessoa(valor);
     const pessoaEncontrada = people.find(
@@ -205,7 +202,7 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/v1/emprestimos', {
+      const response = await fetch(ENDPOINTS.LOANS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -240,7 +237,6 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
         onLoanCreated(data.emprestimo);
       }
 
-      // Fechar modal após breve intervalo para visualização
       setTimeout(() => {
         onClose();
       }, 1200);
@@ -264,7 +260,6 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
       }}
     >
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden p-6 sm:p-8 relative transition-all">
-        {/* Cabeçalho */}
         <div className="relative flex items-center justify-center mb-6">
           <h3 className="text-base sm:text-lg font-medium text-gray-800 text-center font-sans">
             Cadastrar Novo Empréstimo
@@ -280,9 +275,7 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
           </button>
         </div>
 
-        {/* Formulário */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 font-sans text-sm">
-          {/* Linha 1: Livro */}
           <div className="flex items-center gap-4">
             <label htmlFor="livroSelect" className="text-gray-700 font-medium w-24 shrink-0">
               Livro
@@ -311,7 +304,6 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
             </div>
           </div>
 
-          {/* Linha 2: Nome */}
           <div className="flex items-center gap-4">
             <label htmlFor="nomeLeitor" className="text-gray-700 font-medium w-24 shrink-0">
               Nome
@@ -337,14 +329,12 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
             </div>
           </div>
 
-          {/* Linha 3: Turma (com trava de Série e Letra) e Tipo */}
           <div className="flex items-center gap-4 mt-2">
             <div className="flex items-center gap-4 flex-1 min-w-0">
               <label className="text-gray-700 font-medium w-24 shrink-0">
                 Turma
               </label>
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                {/* Seletor de Série */}
                 <div className="relative flex-1 min-w-0">
                   <select
                     value={selectedGrade}
@@ -376,7 +366,6 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
                   />
                 </div>
 
-                {/* Seletor de Letra */}
                 <div className="relative w-16 shrink-0">
                   <select
                     value={selectedLetter}
@@ -424,7 +413,6 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
             </div>
           </div>
 
-          {/* Linha 4: Prazo de Devolução */}
           <div className="flex items-center gap-4">
             <label htmlFor="prazoInput" className="text-gray-700 font-medium w-24 shrink-0">
               Devolução
@@ -441,7 +429,6 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
             </div>
           </div>
 
-          {/* Botões de Ação */}
           <div className="flex justify-center items-center gap-4 pt-6">
             <button
               type="button"
@@ -469,7 +456,6 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
         </form>
       </div>
 
-      {/* Notificações Toast para validação de dados */}
       {toast && (
         <Toast
           key={toast.id}
