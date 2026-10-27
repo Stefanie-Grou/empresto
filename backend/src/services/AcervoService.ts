@@ -14,8 +14,12 @@ export interface NovoItemDTO {
 }
 
 export interface FilaEsperaDTO {
-  nomeAluno: string;
+  nomeAluno?: string;
+  nomePessoa?: string;
+  tipoPessoa?: string;
+  personType?: string;
   serie?: string;
+  turma?: string;
 }
 
 export class AcervoService {
@@ -291,32 +295,34 @@ export class AcervoService {
       throw error;
     }
 
-    if (!dados.nomeAluno || !dados.nomeAluno.trim()) {
-      const error: any = new Error('Nome do aluno é obrigatório.');
+    const nome = formatTitleCase((dados.nomeAluno || dados.nomePessoa || '').trim());
+    const tipoPessoaInput = (dados.tipoPessoa || dados.personType || 'Aluno').trim();
+    const tipoPessoa = ['Aluno', 'Professor', 'Funcionário'].includes(tipoPessoaInput) ? tipoPessoaInput : 'Aluno';
+    const serie = (dados.serie || dados.turma || '').replace(/\uFFFD/g, 'º').trim();
+
+    if (!nome) {
+      const error: any = new Error('Nome é obrigatório.');
       error.statusCode = 400;
       throw error;
     }
 
     const pessoaResult = await pool.query(
       'SELECT id_pessoa FROM pessoa WHERE LOWER(nome) = LOWER($1)',
-      [dados.nomeAluno.trim()]
+      [nome]
     );
 
     let idPessoa: number;
     if (pessoaResult.rows.length > 0) {
       idPessoa = pessoaResult.rows[0].id_pessoa;
-
-      // Mantém a turma da pessoa sincronizada com a informada na reserva
-      if (dados.serie && dados.serie.trim()) {
-        await pool.query('UPDATE pessoa SET turma = $1 WHERE id_pessoa = $2', [
-          dados.serie.trim(),
-          idPessoa,
-        ]);
-      }
+      await pool.query('UPDATE pessoa SET turma = COALESCE(NULLIF($1, \'\'), turma), tipo_pessoa = $2 WHERE id_pessoa = $3', [
+        serie || null,
+        tipoPessoa,
+        idPessoa,
+      ]);
     } else {
       const novaPessoa = await pool.query(
         'INSERT INTO pessoa (nome, tipo_pessoa, turma) VALUES ($1, $2, $3) RETURNING id_pessoa',
-        [dados.nomeAluno.trim(), 'Aluno', dados.serie?.trim() || null]
+        [nome, tipoPessoa, serie || null]
       );
       idPessoa = novaPessoa.rows[0].id_pessoa;
     }
@@ -333,7 +339,7 @@ export class AcervoService {
 
     return {
       posicaoFila: parseInt(posResult.rows[0].pos, 10),
-      mensagem: 'Aluno adicionado à fila de espera.',
+      mensagem: 'Adicionado à fila de espera com sucesso.',
     };
   }
 
@@ -394,19 +400,20 @@ export class AcervoService {
       throw error;
     }
 
-    if (!dados.nomeAluno || !dados.nomeAluno.trim()) {
-      const error: any = new Error('Nome do aluno é obrigatório.');
+    const nome = (dados.nomeAluno || dados.nomePessoa || '').trim();
+    if (!nome) {
+      const error: any = new Error('Nome é obrigatório.');
       error.statusCode = 400;
       throw error;
     }
 
     const pessoaResult = await pool.query(
       'SELECT id_pessoa FROM pessoa WHERE LOWER(nome) = LOWER($1)',
-      [dados.nomeAluno.trim()]
+      [nome]
     );
 
     if (pessoaResult.rows.length === 0) {
-      const error: any = new Error('Aluno não encontrado na fila de espera.');
+      const error: any = new Error('Pessoa não encontrada na fila de espera.');
       error.statusCode = 404;
       throw error;
     }
@@ -417,13 +424,13 @@ export class AcervoService {
     );
 
     if (!rowCount) {
-      const error: any = new Error('Aluno não encontrado na fila de espera.');
+      const error: any = new Error('Pessoa não encontrada na fila de espera.');
       error.statusCode = 404;
       throw error;
     }
 
     return {
-      mensagem: 'Aluno removido da fila de espera.',
+      mensagem: 'Removido da fila de espera com sucesso.',
     };
   }
 
@@ -434,19 +441,20 @@ export class AcervoService {
       throw error;
     }
 
-    if (!dados.nomeAluno || !dados.nomeAluno.trim()) {
-      const error: any = new Error('Nome do aluno é obrigatório.');
+    const nome = (dados.nomeAluno || dados.nomePessoa || '').trim();
+    if (!nome) {
+      const error: any = new Error('Nome é obrigatório.');
       error.statusCode = 400;
       throw error;
     }
 
     const pessoaResult = await pool.query(
       'SELECT id_pessoa FROM pessoa WHERE LOWER(nome) = LOWER($1)',
-      [dados.nomeAluno.trim()]
+      [nome]
     );
 
     if (pessoaResult.rows.length === 0) {
-      const error: any = new Error('Aluno não encontrado na fila de espera.');
+      const error: any = new Error('Pessoa não encontrada na fila de espera.');
       error.statusCode = 404;
       throw error;
     }
@@ -459,14 +467,19 @@ export class AcervoService {
     );
 
     if (filaResult.rows.length === 0) {
-      const error: any = new Error('Aluno não encontrado na fila de espera.');
+      const error: any = new Error('Pessoa não encontrada na fila de espera.');
       error.statusCode = 404;
       throw error;
     }
 
-    if (dados.serie !== undefined) {
-      await pool.query('UPDATE pessoa SET turma = $1 WHERE id_pessoa = $2', [
-        dados.serie.trim() || null,
+    const serie = dados.serie !== undefined ? dados.serie : dados.turma;
+    const tipoPessoaInput = (dados.tipoPessoa || dados.personType || '').trim();
+    const tipoPessoa = ['Aluno', 'Professor', 'Funcionário'].includes(tipoPessoaInput) ? tipoPessoaInput : undefined;
+
+    if (serie !== undefined || tipoPessoa) {
+      await pool.query('UPDATE pessoa SET turma = COALESCE(NULLIF($1, \'\'), turma), tipo_pessoa = COALESCE($2, tipo_pessoa) WHERE id_pessoa = $3', [
+        serie !== undefined ? (serie.trim() || null) : null,
+        tipoPessoa || null,
         idPessoa,
       ]);
     }
@@ -481,7 +494,6 @@ export class AcervoService {
       `SELECT id_pessoa as id, nome, tipo_pessoa as "tipoPessoa", COALESCE(turma, '') as turma FROM pessoa ORDER BY nome ASC;`
     );
     return rows;
-
   }
 }
 

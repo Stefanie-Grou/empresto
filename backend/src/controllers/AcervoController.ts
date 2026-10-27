@@ -62,14 +62,21 @@ export class AcervoController {
   public async adicionarFila(req: Request, res: Response): Promise<void> {
     try {
       const acervoId = Number(req.params.acervoId);
-      const { nomeAluno, serie } = req.body;
+      const { nomeAluno, nomePessoa, tipoPessoa, personType, serie, turma } = req.body || {};
 
       if (isNaN(acervoId)) {
         res.status(400).json({ erro: 'ID do acervo inválido.' });
         return;
       }
 
-      const resultado = await acervoService.adicionarFila(acervoId, { nomeAluno, serie });
+      const resultado = await acervoService.adicionarFila(acervoId, {
+        nomeAluno,
+        nomePessoa,
+        tipoPessoa,
+        personType,
+        serie,
+        turma,
+      });
       res.status(201).json(resultado);
     } catch (error: any) {
       const status = error.statusCode || 400;
@@ -90,9 +97,16 @@ export class AcervoController {
   public async removerFila(req: Request, res: Response): Promise<void> {
     try {
       const acervoId = Number(req.params.acervoId);
-      const { nomeAluno, serie } = req.body || {};
+      const { nomeAluno, nomePessoa, tipoPessoa, personType, serie, turma } = req.body || {};
 
-      const resultado = await acervoService.removerFila(acervoId, { nomeAluno, serie });
+      const resultado = await acervoService.removerFila(acervoId, {
+        nomeAluno,
+        nomePessoa,
+        tipoPessoa,
+        personType,
+        serie,
+        turma,
+      });
       res.status(200).json(resultado);
     } catch (error: any) {
       const status = error.statusCode || 400;
@@ -103,9 +117,16 @@ export class AcervoController {
   public async atualizarFila(req: Request, res: Response): Promise<void> {
     try {
       const acervoId = Number(req.params.acervoId);
-      const { nomeAluno, serie } = req.body || {};
+      const { nomeAluno, nomePessoa, tipoPessoa, personType, serie, turma } = req.body || {};
 
-      const resultado = await acervoService.atualizarFila(acervoId, { nomeAluno, serie });
+      const resultado = await acervoService.atualizarFila(acervoId, {
+        nomeAluno,
+        nomePessoa,
+        tipoPessoa,
+        personType,
+        serie,
+        turma,
+      });
       res.status(200).json(resultado);
     } catch (error: any) {
       const status = error.statusCode || 400;

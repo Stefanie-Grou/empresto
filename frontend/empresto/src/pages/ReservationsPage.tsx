@@ -4,7 +4,7 @@ import { usePaginatedSearch } from '../components/PaginatedSearch';
 import ReservationsTable from '../components/ReservationsTable';
 import { toWaitlistLentItem } from '../utils/adapters';
 import type { LentItem } from '../interfaces/LentItem';
-import GenericFilterDropdown, { type FieldConfig, type FilterOption } from '../components/GenericFilterDopdown';
+import GenericFilterDropdown, { type FieldConfig } from '../components/GenericFilterDopdown';
 import CreateReservationModal, { type CreateReservationFormData } from '../components/modals/CreateReservationModal';
 import ReservationModal from '../components/modals/ReservationModal';
 import { 
@@ -34,14 +34,12 @@ export default function ReservationPage() {
     ordenacao: 'aluno_asc',
   });
 
-  // Carrega a fila de espera do backend (GET /api/v1/acervo/fila)
   const loadReservations = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await inventoryService.getWaitlist();
       setLentItems(data.map(toWaitlistLentItem));
     } catch {
-      // O toast de erro é exibido pelo inventoryService
     } finally {
       setIsLoading(false);
     }
@@ -55,14 +53,17 @@ export default function ReservationPage() {
     try {
       const payload: WaitlistPayload = {
         nomeAluno: formData.userName,
+        nomePessoa: formData.userName,
+        tipoPessoa: formData.personType,
+        personType: formData.personType,
         serie: formData.classGroup,
+        turma: formData.classGroup,
       };
 
       await inventoryService.addToWaitlist(formData.acervoId, payload);
       setIsCreateModalOpen(false);
       await loadReservations();
     } catch {
-      // O toast de erro é exibido pelo inventoryService
     }
   };
 
@@ -76,6 +77,7 @@ export default function ReservationPage() {
         const payload: RemoveWaitlistPayload = {
           nomeAluno: data.studentName,
           serie: data.studentClass,
+          tipoPessoa: data.personType,
         };
 
         await inventoryService.removeFromWaitlist(acervoId, payload);
@@ -83,13 +85,16 @@ export default function ReservationPage() {
         setIsActionModalOpen(false);
         await loadReservations();
       } catch {
-        // O toast de erro é exibido pelo inventoryService
       }
     } else {
       try {
         const payload: UpdateWaitlistPayload = {
           nomeAluno: data.studentName,
+          nomePessoa: data.studentName,
+          tipoPessoa: data.personType,
+          personType: data.personType,
           serie: data.studentClass,
+          turma: data.studentClass,
         };
 
         await inventoryService.updateWaitlist(acervoId, payload);
@@ -97,16 +102,16 @@ export default function ReservationPage() {
         setIsActionModalOpen(false);
         await loadReservations();
       } catch {
-        // O toast de erro é exibido pelo inventoryService
       }
     }
   };
 
-  const classOptions = useMemo<FilterOption[]>(() => {
-    const rawClasses = lentItems
+  const classOptions = useMemo(() => {
+    const classes = lentItems
       .map((item) => item.studentClass)
-      .filter((studentClass): studentClass is string => Boolean(studentClass));
-    const uniqueClasses = Array.from(new Set(rawClasses)).sort((a, b) => a.localeCompare(b));
+      .filter((turma): turma is string => Boolean(turma && turma !== '-'));
+
+    const uniqueClasses = Array.from(new Set(classes)).sort();
 
     const dynamicOptions = uniqueClasses.map((turma) => ({
       label: turma,
@@ -119,7 +124,7 @@ export default function ReservationPage() {
   const filterFields = useMemo<FieldConfig<ReservationFilterState>[]>(() => [
     {
       key: 'turma',
-      label: 'Turma do Aluno',
+      label: 'Turma',
       type: 'select',
       options: classOptions,
     },
@@ -128,7 +133,7 @@ export default function ReservationPage() {
       label: 'Ordenar Por',
       type: 'select',
       options: [
-        { label: 'Nome do Aluno (A-Z)', value: 'aluno_asc' },
+        { label: 'Nome (A-Z)', value: 'aluno_asc' },
         { label: 'Título do Livro (A-Z)', value: 'livro_asc' },
       ],
     },
@@ -158,6 +163,7 @@ export default function ReservationPage() {
       item.bookTitle.toLowerCase().includes(term) ||
       item.bookAuthor.toLowerCase().includes(term) ||
       item.studentName.toLowerCase().includes(term) ||
+      (item.personType?.toLowerCase().includes(term) ?? false) ||
       (item.studentClass?.toLowerCase().includes(term) ?? false) ||
       String(item.id).toLowerCase().includes(term),
     []
@@ -179,7 +185,7 @@ export default function ReservationPage() {
     <div className="flex flex-col gap-6 p-8 relative">
       <ItemsActionBarHeader
         title="Reservas"
-        subtitle="Gerencie a ordem de alunos aguardando por livros que estão emprestados no momento."
+        subtitle="Gerencie a ordem de pessoas aguardando por livros que estão emprestados no momento."
         placeholder="Buscar reservas ativas"
         newItemLabel="Adicionar à Fila"
         searchTerm={searchTerm}
@@ -215,14 +221,12 @@ export default function ReservationPage() {
         }}
       />
 
-      {/* Modal para Adicionar à Fila */}
       <CreateReservationModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSave={handleSaveNewReservation}
       />
 
-      {/* Modal Unificado para Edição e Exclusão de Reserva */}
       <ReservationModal
         isOpen={isActionModalOpen}
         onClose={() => setIsActionModalOpen(false)}

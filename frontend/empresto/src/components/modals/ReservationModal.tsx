@@ -53,19 +53,36 @@ export default function ReservationModal({
       submitLabel={shouldShowSubmitButton ? submitLabel : undefined}
     >
       <div className="flex flex-col space-y-4">
-        {/* Nome do Aluno */}
-        <div>
-          <TextInput
-            label="Nome do Aluno"
-            value={formData.studentName}
-            onChange={(e) => handleInputChange('studentName', e.target.value)}
-            disabled={isReadOnly}
-            readOnly={isReadOnly}
-            required
-          />
+        <div className="grid grid-cols-12 gap-3 items-center">
+          <div className="col-span-8">
+            <TextInput
+              label="Nome"
+              value={formData.studentName}
+              onChange={(e) => handleInputChange('studentName', e.target.value)}
+              disabled={isReadOnly}
+              readOnly={isReadOnly}
+              required
+            />
+          </div>
+          <div className="col-span-4">
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-xs font-semibold text-gray-800 shrink-0">Tipo</label>
+              <select
+                value={formData.personType || 'Aluno'}
+                disabled={isReadOnly}
+                onChange={(e) => handleInputChange('personType', e.target.value)}
+                className={`w-full px-3 py-2 bg-gray-100/80 rounded-xl text-xs font-medium text-gray-800 outline-none ${
+                  isReadOnly ? 'cursor-not-allowed text-gray-500' : 'focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer'
+                }`}
+              >
+                <option value="Aluno">Aluno</option>
+                <option value="Professor">Professor</option>
+                <option value="Funcionário">Funcionário</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        {/* Turma */}
         <div>
           <TextInput
             label="Turma"
@@ -76,26 +93,24 @@ export default function ReservationModal({
           />
         </div>
 
-        {/* Livro Desejado */}
         <div>
           <TextInput
-            label="Título do Livro"
+            label="Livro"
             value={formData.bookTitle}
             onChange={(e) => handleInputChange('bookTitle', e.target.value)}
-            disabled={isReadOnly}
-            readOnly={isReadOnly}
+            disabled
+            readOnly
             required
           />
         </div>
 
-        {/* Prazo / Data */}
         <div>
           <TextInput
-            label="Prazo"
+            label="Data do Pedido"
             value={formData.dueDate}
             onChange={(e) => handleInputChange('dueDate', e.target.value)}
-            disabled={isReadOnly}
-            readOnly={isReadOnly}
+            disabled
+            readOnly
           />
         </div>
       </div>
