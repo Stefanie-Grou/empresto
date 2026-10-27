@@ -13,10 +13,6 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
-      - key: EMAIL_USER
-        sync: false
-      - key: EMAIL_PASS
-        sync: false
 
   - type: web
     name: empresto-frontend
