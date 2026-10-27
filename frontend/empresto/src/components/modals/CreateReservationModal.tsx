@@ -6,6 +6,7 @@ import type { BookOption } from '../../interfaces/BookOption';
 
 export interface CreateReservationFormData {
   userName: string;
+  personType: 'Aluno' | 'Professor' | 'Funcionário';
   classGroup: string;
   acervoId: number;
   bookTitle: string;
@@ -18,7 +19,7 @@ interface CreateReservationModalProps {
   onSave: (data: CreateReservationFormData) => void;
 }
 
-function getFutureDateFormatted(daysAhead: number = 7): string {
+function getFutureDateFormatted(daysAhead: number = 0): string {
   const date = new Date();
   date.setDate(date.getDate() + daysAhead);
   const day = String(date.getDate()).padStart(2, '0');
@@ -33,15 +34,17 @@ export default function CreateReservationModal({
   onSave,
 }: CreateReservationModalProps) {
   const [userName, setUserName] = useState('');
+  const [personType, setPersonType] = useState<'Aluno' | 'Professor' | 'Funcionário'>('Aluno');
   const [classGroup, setClassGroup] = useState('');
   const [bookTitle, setBookTitle] = useState('');
   const [acervoId, setAcervoId] = useState(0);
 
-  const dueDate = getFutureDateFormatted(7);
+  const dueDate = getFutureDateFormatted(0);
 
   useEffect(() => {
     if (isOpen) {
       setUserName('');
+      setPersonType('Aluno');
       setClassGroup('');
       setBookTitle('');
       setAcervoId(0);
@@ -57,7 +60,8 @@ export default function CreateReservationModal({
     e.preventDefault();
     onSave({
       userName: userName.trim(),
-      classGroup: classGroup.trim(),
+      personType,
+      classGroup: personType === 'Aluno' ? classGroup.trim() : (classGroup.trim() || '-'),
       acervoId,
       bookTitle,
       dueDate,
@@ -74,46 +78,49 @@ export default function CreateReservationModal({
       submitLabel="Reservar"
     >
       <div className="flex flex-col space-y-4">
-        {/* Linha 1: Nome do Aluno */}
-        <div>
-          <TextInput
-            label="Nome do Aluno"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            placeholder="Ex: João da Silva"
-            required
-          />
+        <div className="grid grid-cols-12 gap-3 items-center">
+          <div className="col-span-8">
+            <TextInput
+              label="Nome"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Nome da pessoa"
+              required
+            />
+          </div>
+          <div className="col-span-4">
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-xs font-semibold text-gray-800 shrink-0">Tipo</label>
+              <select
+                value={personType}
+                onChange={(e) => setPersonType(e.target.value as any)}
+                className="w-full px-3 py-2 bg-gray-100/80 rounded-xl text-xs font-medium text-gray-800 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer"
+              >
+                <option value="Aluno">Aluno</option>
+                <option value="Professor">Professor</option>
+                <option value="Funcionário">Funcionário</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        {/* Linha 2: Turma (Opcional) */}
         <div>
           <TextInput
-            label="Turma (Opcional)"
+            label="Turma"
             value={classGroup}
             onChange={(e) => setClassGroup(e.target.value)}
-            placeholder="Ex: 8º B"
+            placeholder={personType === 'Aluno' ? 'Ex: 8º B' : '-'}
+            required={personType === 'Aluno'}
           />
         </div>
 
-        {/* Linha 3: Busca de Livro com Dropdown de sugestões */}
         <div>
           <BookSearchInput
-            label="Livro Desejado"
-            key={isOpen ? 'open' : 'closed'}
+            label="Livro"
+            placeholder="Digite o título do livro..."
             onSelect={handleSelectBook}
-            onTextChange={setBookTitle}
+            onTextChange={(text) => setBookTitle(text)}
             required
-          />
-        </div>
-
-        {/* Linha 4: Prazo de Devolução (+7 dias) */}
-        <div>
-          <TextInput
-            label="Prazo de Devolução (Automático)"
-            value={dueDate}
-            onChange={() => {}}
-            disabled
-            readOnly
           />
         </div>
       </div>

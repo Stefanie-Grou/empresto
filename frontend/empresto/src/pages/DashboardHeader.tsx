@@ -3,15 +3,19 @@ import { Icon } from '@iconify/react';
 import CreateLoanModal, { type CreateLoanFormData } from '../components/modals/CreateLoanModal';
 import { loanService } from '../services/loanService';
 
-export default function DashboardHeader() {
+interface DashboardHeaderProps {
+  onNewLoanClick?: () => void;
+}
+
+export default function DashboardHeader({ onNewLoanClick }: DashboardHeaderProps = {}) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleCreateLoan = async (formData: CreateLoanFormData) => {
     try {
       await loanService.create({
-        acervoId: formData.acervoId || 1,
         studentName: formData.studentName,
         studentClass: formData.studentClass,
+        acervoId: formData.acervoId,
         dueDate: formData.dueDate,
       });
       setIsCreateModalOpen(false);
@@ -32,12 +36,13 @@ export default function DashboardHeader() {
     }
   }
 
-  const formattedDate = new Intl.DateTimeFormat('pt-BR', {
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString('pt-BR', {
     weekday: 'long',
-    day: '2-digit',
+    day: 'numeric',
     month: 'long',
     year: 'numeric',
-  }).format(new Date());
+  });
 
   const capitalizedDate =
     formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
@@ -59,19 +64,21 @@ export default function DashboardHeader() {
 
         <button
           type="button"
-          onClick={() => setIsCreateModalOpen(true)}
-          className="px-6 py-3 bg-emerald-900 hover:bg-emerald-950 text-white font-medium text-sm rounded-2xl transition-colors cursor-pointer flex items-center gap-2"
+          onClick={onNewLoanClick || (() => setIsCreateModalOpen(true))}
+          className="buttons bg-main-background-green text-white flex items-center gap-2 cursor-pointer"
         >
           <Icon icon="lucide:plus" className="w-4 h-4" />
-          Novo Empréstimo
+          <span>Novo empréstimo</span>
         </button>
       </div>
 
-      <CreateLoanModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSave={handleCreateLoan}
-      />
+      {!onNewLoanClick && (
+        <CreateLoanModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSave={handleCreateLoan}
+        />
+      )}
     </>
   );
 }

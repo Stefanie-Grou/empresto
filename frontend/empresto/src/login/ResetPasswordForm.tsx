@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import HeaderLogo from '../assets/HeaderLogo';
 import Toast, { type ToastType } from '../components/Toast';
+import { ENDPOINTS } from '../services/apiConfig';
 
 interface ToastState {
   id: number;
@@ -101,7 +102,7 @@ export function ResetPasswordForm({ onSwitchToLogin, showHeaderLogo = true, toke
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/v1/auth/redefinir-senha', {
+      const response = await fetch(`${ENDPOINTS.AUTH}/redefinir-senha`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

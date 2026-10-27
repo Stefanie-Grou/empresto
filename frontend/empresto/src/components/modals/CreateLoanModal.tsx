@@ -8,6 +8,7 @@ export interface CreateLoanFormData {
   acervoId: number;
   studentName: string;
   studentClass: string;
+  personType: 'Aluno' | 'Professor' | 'Funcionário';
   bookTitle: string;
   dueDate: string;
 }
@@ -20,10 +21,20 @@ interface CreateLoanModalProps {
   submitLabel?: string;
 }
 
+function getDefaultDueDate(): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 7);
+  const dia = String(date.getDate()).padStart(2, '0');
+  const mes = String(date.getMonth() + 1).padStart(2, '0');
+  const ano = date.getFullYear();
+  return `${dia}/${mes}/${ano}`;
+}
+
 const INITIAL_FORM_STATE: CreateLoanFormData = {
   acervoId: 0,
   studentName: '',
   studentClass: '',
+  personType: 'Aluno',
   bookTitle: '',
   dueDate: '',
 };
@@ -39,18 +50,20 @@ export default function CreateLoanModal({
 
   useEffect(() => {
     if (isOpen) {
-      setFormData(INITIAL_FORM_STATE);
+      setFormData({
+        ...INITIAL_FORM_STATE,
+        dueDate: getDefaultDueDate(),
+      });
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleInputChange = (field: keyof CreateLoanFormData, value: string) => {
+  const handleInputChange = (field: keyof CreateLoanFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSelectBook = (book: BookOption | null) => {
-    // Campo visual: o empréstimo continua guardando o título do livro
     setFormData((prev) => ({
       ...prev,
       bookTitle: book?.bookTitle || '',
@@ -60,7 +73,10 @@ export default function CreateLoanModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    onSave({
+      ...formData,
+      studentClass: formData.personType === 'Aluno' ? formData.studentClass.trim() : (formData.studentClass.trim() || '-'),
+    });
   };
 
   return (
@@ -72,34 +88,39 @@ export default function CreateLoanModal({
       submitLabel={submitLabel}
     >
       <div className="grid grid-cols-12 gap-3 items-center">
-        <div className="col-span-7">
+        <div className="col-span-8">
           <TextInput
             label="Nome"
             value={formData.studentName}
             onChange={(e) => handleInputChange('studentName', e.target.value)}
-            placeholder="Ana Martins"
+            placeholder="Nome da pessoa"
             required
           />
         </div>
-        <div className="col-span-5">
-          <TextInput
-            label="Turma"
-            value={formData.studentClass}
-            onChange={(e) => handleInputChange('studentClass', e.target.value)}
-            placeholder="7B"
-            required
-          />
+        <div className="col-span-4">
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-xs font-semibold text-gray-800 shrink-0">Tipo</label>
+            <select
+              value={formData.personType}
+              onChange={(e) => handleInputChange('personType', e.target.value as any)}
+              className="w-full px-3 py-2 bg-gray-100/80 rounded-xl text-xs font-medium text-gray-800 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-800 cursor-pointer"
+            >
+              <option value="Aluno">Aluno</option>
+              <option value="Professor">Professor</option>
+              <option value="Funcionário">Funcionário</option>
+            </select>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-12 gap-3 items-center">
         <div className="col-span-7">
-          <BookSearchInput
-            label="Livro"
-            placeholder="O Auto da Compadecida"
-            onSelect={handleSelectBook}
-            onTextChange={(text) => setFormData((prev) => ({ ...prev, bookTitle: text }))}
-            required
+          <TextInput
+            label="Turma"
+            value={formData.studentClass}
+            onChange={(e) => handleInputChange('studentClass', e.target.value)}
+            placeholder={formData.personType === 'Aluno' ? 'Ex: 9º Ano A' : '-'}
+            required={formData.personType === 'Aluno'}
           />
         </div>
         <div className="col-span-5">
@@ -107,7 +128,19 @@ export default function CreateLoanModal({
             label="Prazo"
             value={formData.dueDate}
             onChange={(e) => handleInputChange('dueDate', e.target.value)}
-            placeholder="10/09/2026"
+            placeholder="DD/MM/AAAA"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-12 gap-3 items-center">
+        <div className="col-span-12">
+          <BookSearchInput
+            label="Livro"
+            placeholder="Digite o título do livro..."
+            onSelect={handleSelectBook}
+            onTextChange={(text) => setFormData((prev) => ({ ...prev, bookTitle: text }))}
             required
           />
         </div>

@@ -121,7 +121,7 @@ export default function ItemModal({
               <option value="Livro">Livro</option>
               <option value="Revista">Revista</option>
               <option value="Quadrinho">Quadrinho</option>
-              <option value="Quadrinho">Outro</option>
+              <option value="Outro">Outro</option>
             </select>
           </div>
         </div>

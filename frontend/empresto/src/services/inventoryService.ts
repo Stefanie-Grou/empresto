@@ -16,10 +16,9 @@ export interface InventoryPayload {
 export interface RemoveWaitlistPayload {
   nomeAluno: string;
   serie?: string;
+  tipoPessoa?: string;
 }
 
-// PUT e DELETE na fila de espera usam o mesmo corpo do POST
-// (o verbo é que muda), então o payload de atualização é o mesmo.
 export type UpdateWaitlistPayload = WaitlistPayload;
 
 export function toInventoryPayload(data: Omit<InventoryItem, 'id' | 'available'>): InventoryPayload {
@@ -131,8 +130,6 @@ export const inventoryService = {
 
       const data: BookOption[] = await response.json();
 
-      // O endpoint devolve o item completo do acervo; normaliza para o dropdown
-      // e evita sugestões repetidas para o mesmo título.
       const options = data.map((book) => ({
         id: book.id,
         bookTitle: book.bookTitle,
@@ -176,13 +173,13 @@ export const inventoryService = {
       });
 
       if (!response.ok) {
-        await throwApiError(response, 'Não foi possível adicionar o aluno à fila de espera.');
+        await throwApiError(response, 'Não foi possível adicionar à fila de espera.');
       }
 
-      toast.success('Reserva cadastrada', 'O aluno entrou na fila de espera com sucesso.');
+      toast.success('Reserva cadastrada', 'Adicionado à fila de espera com sucesso.');
       return response.json();
     } catch (error) {
-      notifyError('Erro ao reservar', error, 'Não foi possível adicionar o aluno à fila de espera.');
+      notifyError('Erro ao reservar', error, 'Não foi possível adicionar à fila de espera.');
       throw error;
     }
   },
@@ -198,13 +195,13 @@ export const inventoryService = {
       });
 
       if (!response.ok) {
-        await throwApiError(response, 'Não foi possível remover o aluno da fila de espera.');
+        await throwApiError(response, 'Não foi possível remover da fila de espera.');
       }
 
-      toast.success('Reserva removida', 'O aluno foi removido da fila de espera.');
+      toast.success('Reserva removida', 'Removido da fila de espera com sucesso.');
       return response.json();
     } catch (error) {
-      notifyError('Erro ao remover da fila', error, 'Não foi possível remover o aluno da fila de espera.');
+      notifyError('Erro ao remover da fila', error, 'Não foi possível remover da fila de espera.');
       throw error;
     }
   },

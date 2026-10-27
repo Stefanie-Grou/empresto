@@ -6,6 +6,10 @@ import DashboardHeader from "./DashboardHeader";
 import RecentLoans from '../components/RecentLoans';
 import QuickActions from '../components/QuickActions';
 import Toast from '../components/Toast';
+import NewLoanModal from '../components/NewLoanModal';
+import { MOCK_LOANS } from '../mocks/mock_loans';
+import type { LoanItem } from '../interfaces/LoanItem';
+import { ENDPOINTS } from '../services/apiConfig';
 import {
   dashboardService,
   EMPTY_DASHBOARD_SUMMARY,
@@ -25,6 +29,40 @@ export default function DashboardPage() {
   const [toastMessage, setToastMessage] = useState('Login realizado com sucesso! Bem-vindo(a) ao Emprestô.');
   const [summary, setSummary] = useState<DashboardSummary>(EMPTY_DASHBOARD_SUMMARY);
   const [isLoadingSummary, setIsLoadingSummary] = useState(true);
+  const [isNewLoanModalOpen, setIsNewLoanModalOpen] = useState(false);
+  const [loans, setLoans] = useState<LoanItem[]>(MOCK_LOANS);
+
+  const fetchLoans = async () => {
+    try {
+      const res = await fetch(ENDPOINTS.LOANS);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const dbLoans: LoanItem[] = data.map((item: any) => ({
+            id: String(item.id ?? item.id_emprestimo),
+            bookTitle: item.bookTitle || item.livroTitulo || item.livro_titulo || 'Livro',
+            bookAuthor: item.bookAuthor || item.livroAutor || item.livro_autor || 'Autor',
+            userName: item.studentName || item.pessoaNome || item.pessoa_nome || 'Leitor',
+            classGroup: item.studentClass || item.turma || item.pessoa_turma || '-',
+            userType: item.userType || item.tipoPessoa || item.pessoaTipo || item.pessoa_tipo || 'Aluno',
+            dueDate: item.dueDate || item.prazoDevolucao || item.rawDueDate || '-',
+            itemType: item.itemType || item.itemTipo || 'Livro',
+          }));
+          setLoans(dbLoans);
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao consultar empréstimos no backend:', err);
+    }
+  };
+
+  const refreshAll = () => {
+    fetchLoans();
+  };
+
+  useEffect(() => {
+    fetchLoans();
+  }, []);
 
   useEffect(() => {
     const isRegisterState = location.state?.registerSuccess;
@@ -50,9 +88,9 @@ export default function DashboardPage() {
     try {
       const data = await dashboardService.getSummary();
       setSummary(data);
+      setIsLoadingSummary(false);
     } catch {
       // O toast de erro é exibido pelo dashboardService
-    } finally {
       setIsLoadingSummary(false);
     }
   }, []);
@@ -66,7 +104,7 @@ export default function DashboardPage() {
 
   return (
     <div className="h-screen w-full overflow-y-hidden flex flex-col gap-6 p-8 bg-main-background-gray relative">
-      <DashboardHeader />
+      <DashboardHeader onNewLoanClick={() => setIsNewLoanModalOpen(true)} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full shrink-0">
         <StatCard
@@ -101,12 +139,18 @@ export default function DashboardPage() {
 
       <div className="grid lg:grid-cols-3 gap-6 flex-1 min-h-0">
         <div className="lg:col-span-2 min-h-0 flex flex-col">
-          <RecentLoans />
+          <RecentLoans loans={loans} />
         </div>
         <div className="lg:col-span-1 min-h-0">
           <QuickActions />
         </div>
       </div>
+
+      <NewLoanModal
+        isOpen={isNewLoanModalOpen}
+        onClose={() => setIsNewLoanModalOpen(false)}
+        onLoanCreated={() => refreshAll()}
+      />
 
       {showToast && (
         <Toast

@@ -3,16 +3,15 @@ import { ENDPOINTS } from './apiConfig';
 import { toast } from './toastStore';
 import { throwApiError, errorMessage } from './apiError';
 
-// Contrato do backend (NovoEmprestimoDTO / AtualizarEmprestimoDTO):
-// nomeAluno, turma, livroId, prazoDevolucao
 export interface LoanPayload {
   nomeAluno: string;
+  tipoPessoa?: string;
   turma: string;
   livroId: number;
   prazoDevolucao: string;
+  status?: string;
 }
 
-// Mantido como alias para não quebrar importações existentes
 export type UpdateLoanPayload = LoanPayload;
 
 export interface DeleteLoanPayload {
@@ -61,16 +60,19 @@ export function toUpdateLoanPayload(item: LentItem, isRenew: boolean = false): L
 
   return {
     nomeAluno: item.studentName.trim(),
+    tipoPessoa: item.personType || 'Aluno',
     turma: (item.studentClass || '').trim(),
-    livroId: Number(item.acervoId ?? item.id),
+    livroId: Number(item.acervoId ?? (item as any).bookId ?? (item as any).id_livro),
     prazoDevolucao: targetDate,
+    status: item.status,
   };
 }
 
 export const loanService = {
-  async create(data: { acervoId: number; studentName: string; studentClass: string; dueDate: string }) {
-    const payload: LoanPayload = {
+  async create(data: { acervoId: number; studentName: string; studentClass: string; personType?: string; dueDate: string }) {
+    const payload = {
       nomeAluno: data.studentName.trim(),
+      tipoPessoa: data.personType || 'Aluno',
       turma: data.studentClass.trim(),
       livroId: Number(data.acervoId),
       prazoDevolucao: formatDateToISO(data.dueDate),
@@ -179,6 +181,26 @@ export const loanService = {
       return text ? JSON.parse(text) : null;
     } catch (error) {
       notifyError('Erro ao registrar devolução', error, 'Não foi possível registrar a devolução.');
+      throw error;
+    }
+  },
+
+  async deletePermanent(id: string | number) {
+    const url = `${ENDPOINTS.LOANS}/${id}`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        await throwApiError(response, 'Não foi possível remover o empréstimo.');
+      }
+
+      toast.success('Empréstimo removido', 'O registro foi excluído com sucesso.');
+      return response.json();
+    } catch (error) {
+      notifyError('Erro ao remover empréstimo', error, 'Não foi possível remover o empréstimo.');
       throw error;
     }
   },

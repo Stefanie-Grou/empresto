@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import HeaderLogo from '../assets/HeaderLogo';
 import Toast, { type ToastType } from '../components/Toast';
+import { ENDPOINTS } from '../services/apiConfig';
 
 interface ToastState {
   id: number;
@@ -48,7 +49,7 @@ export function ForgotPasswordForm({
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/v1/auth/esqueceu-senha', {
+      const response = await fetch(`${ENDPOINTS.AUTH}/esqueceu-senha`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import HeaderLogo from '../assets/HeaderLogo';
 import Toast, { type ToastType } from '../components/Toast';
 import { saveSession } from '../services/session';
+import { ENDPOINTS } from '../services/apiConfig';
 
 interface RegisterFormData {
   nomeUsuario: string;
@@ -134,7 +135,7 @@ export function RegisterForm({ onSwitchToLogin, showHeaderLogo = true }: Registe
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/v1/auth/cadastro', {
+      const response = await fetch(`${ENDPOINTS.AUTH}/cadastro`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -3,6 +3,7 @@ import { formatTitleCase } from '../utils/textUtils.js';
 
 export interface NovoEmprestimoDTO {
   nomeAluno?: string;
+  nomePessoa?: string;
   studentName?: string;
   tipoPessoa?: string;
   personType?: string;
@@ -12,6 +13,7 @@ export interface NovoEmprestimoDTO {
   bookId?: number;
   prazoDevolucao?: string;
   dueDate?: string;
+  userType?: string;
 }
 
 export interface AtualizarEmprestimoDTO {
@@ -117,6 +119,8 @@ export class EmprestimoService {
         tipoPessoa: row.pessoa_tipo || 'Aluno',
         studentClass: (row.pessoa_turma || '').replace(/\uFFFD/g, 'º'),
         turma: (row.pessoa_turma || '').replace(/\uFFFD/g, 'º'),
+        userType: row.pessoa_tipo || 'Aluno',
+        pessoaTipo: row.pessoa_tipo || 'Aluno',
         borrowDate: row.data_emprestimo,
         dueDate: dueDateFormatted,
         rawDueDate: dueDateIso,
@@ -204,6 +208,8 @@ export class EmprestimoService {
       tipoPessoa: row.pessoa_tipo || 'Aluno',
       studentClass: (row.pessoa_turma || '').replace(/\uFFFD/g, 'º'),
       turma: (row.pessoa_turma || '').replace(/\uFFFD/g, 'º'),
+      userType: row.pessoa_tipo || 'Aluno',
+      pessoaTipo: row.pessoa_tipo || 'Aluno',
       borrowDate: row.data_emprestimo,
       dueDate: dueDateFormatted,
       rawDueDate: dueDateIso,
@@ -214,8 +220,8 @@ export class EmprestimoService {
   }
 
   public async registrar(dados: NovoEmprestimoDTO) {
-    const nomeAluno = formatTitleCase((dados.nomeAluno || dados.studentName || '').trim());
-    const tipoPessoaInput = (dados.tipoPessoa || dados.personType || 'Aluno').trim();
+const nomeAluno = formatTitleCase((dados.nomeAluno || dados.nomePessoa || dados.studentName || '').trim());
+    const tipoPessoaInput = (dados.tipoPessoa || dados.personType || dados.userType || 'Aluno').trim();
     const tipoPessoa = ['Aluno', 'Professor', 'Funcionário'].includes(tipoPessoaInput) ? tipoPessoaInput : 'Aluno';
     const turma = (dados.turma || dados.studentClass || '').replace(/\uFFFD/g, 'º').trim();
     const livroIdRaw = dados.livroId !== undefined ? dados.livroId : dados.bookId;
@@ -270,7 +276,7 @@ export class EmprestimoService {
     if (pessoaRes.rows.length > 0) {
       idPessoa = pessoaRes.rows[0].id_pessoa;
       await pool.query(
-        'UPDATE pessoa SET turma = COALESCE(NULLIF($1, \'\'), turma), tipo_pessoa = $2 WHERE id_pessoa = $3',
+'UPDATE pessoa SET turma = COALESCE(NULLIF($1, \'\'), turma), tipo_pessoa = $2 WHERE id_pessoa = $3',
         [turma || null, tipoPessoa, idPessoa]
       );
     } else {
