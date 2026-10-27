@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import type { LentItem } from '../../interfaces/LentItem';
 import BaseModal from './BaseModal';
 import { TextInput } from '../FormInput';
-import BookSearchInput from '../BookSearchInput';
 
 interface LoanModalProps {
   isOpen: boolean;
@@ -15,6 +14,28 @@ interface LoanModalProps {
   isReadOnly?: boolean;
   warningMessage?: string;
   submitLabel?: string;
+}
+
+// Campos que o formulário realmente permite alterar (nome, turma, livro, prazo)
+function toEditableValues(item: LentItem) {
+  return {
+    studentName: (item.studentName || '').trim(),
+    studentClass: (item.studentClass || '').trim(),
+    bookTitle: (item.bookTitle || '').trim(),
+    dueDate: (item.dueDate || '').trim(),
+  };
+}
+
+function hasChanges(current: LentItem, original: LentItem): boolean {
+  const a = toEditableValues(current);
+  const b = toEditableValues(original);
+
+  return (
+    a.studentName !== b.studentName ||
+    a.studentClass !== b.studentClass ||
+    a.bookTitle !== b.bookTitle ||
+    a.dueDate !== b.dueDate
+  );
 }
 
 export default function LoanModal({
@@ -30,10 +51,13 @@ export default function LoanModal({
   submitLabel = 'Salvar',
 }: LoanModalProps) {
   const [formData, setFormData] = useState<LentItem | null>(null);
+  // Guarda o empréstimo original para detectar se houve alteração
+  const [originalLoan, setOriginalLoan] = useState<LentItem | null>(null);
 
   useEffect(() => {
     if (loan) {
       setFormData({ ...loan });
+      setOriginalLoan({ ...loan });
     }
   }, [loan, isOpen]);
 
@@ -44,6 +68,8 @@ export default function LoanModal({
   };
 
   const isAtrasado = formData.status.toLowerCase() === 'atrasado';
+
+  const isDirty = originalLoan ? hasChanges(formData, originalLoan) : false;
 
   const shouldShowSubmitButton = Boolean(warningMessage) || !isReadOnly || submitLabel === 'Devolver';
 
@@ -56,9 +82,14 @@ export default function LoanModal({
         e.preventDefault();
         if (submitLabel === 'Devolver' && onReturn) {
           onReturn(formData);
-        } else {
-          onSave(formData);
+          return;
         }
+        // Nada mudou: fecha o modal sem chamar o endpoint
+        if (!isDirty) {
+          onClose();
+          return;
+        }
+        onSave(formData);
       }}
       warningMessage={warningMessage}
       submitLabel={shouldShowSubmitButton ? submitLabel : undefined}
@@ -100,26 +131,14 @@ export default function LoanModal({
 
       <div className="grid grid-cols-12 gap-3 items-center">
         <div className="col-span-7">
-          {isReadOnly ? (
-            <TextInput
-              label="Livro"
-              value={formData.bookTitle}
-              onChange={(e) => handleInputChange('bookTitle', e.target.value)}
-              disabled
-              readOnly
-            />
-          ) : (
-            <BookSearchInput
-              label="Livro"
-              placeholder="O Auto da Compadecida"
-              initialValue={formData.bookTitle}
-              onSelect={(book) => {
-                if (book) handleInputChange('bookTitle', book.bookTitle);
-              }}
-              onTextChange={(text) => handleInputChange('bookTitle', text)}
-              required
-            />
-          )}
+          {/* O livro não é editável: para trocar, exclua e registre um novo empréstimo */}
+          <TextInput
+            label="Livro"
+            value={formData.bookTitle}
+            onChange={() => {}}
+            disabled
+            readOnly
+          />
         </div>
         <div className="col-span-5">
           <TextInput
