@@ -4,8 +4,6 @@ interface StatCardProps {
   title: string;
   subtitle: string;
   value: string | number;
-  statsHighlight?: string;
-  statsLabel?: string;
   icon: string;
   colorVariable?: string;
 }
@@ -14,8 +12,6 @@ export default function StatCard({
   title,
   subtitle,
   value,
-  statsHighlight,
-  statsLabel,
   icon,
   colorVariable = 'var(--color-secondary-light-green)',
 }: StatCardProps) {
@@ -39,16 +35,7 @@ export default function StatCard({
         </span>
       </div>
 
-      <div className="flex items-end justify-between pt-1">
-        <div className="text-xs ">
-          {statsHighlight && (
-            <span style={{ color: colorVariable }} className="font-medium mr-1">
-              {statsHighlight}
-            </span>
-          )}
-          {statsLabel && <span>{statsLabel}</span>}
-        </div>
-
+      <div className="flex items-end justify-end pt-1">
         <div style={{ backgroundColor: `${colorVariable}1a`, color: colorVariable }}
           className="rounded-xl flex items-center justify-center">
           <Icon icon={iconName} className="w-6 h-6" />
