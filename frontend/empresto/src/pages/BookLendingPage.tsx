@@ -7,37 +7,30 @@ import type { LentItem } from '../interfaces/LentItem';
 import LoanModal from '../components/modals/LoanModal';
 import CreateLoanModal from '../components/modals/CreateLoanModal';
 import { loanService } from '../services/loanService';
-import GenericFilterDropdown from '../components/GenericFilterDopdown';
+import GenericFilterDropdown, {
+  type FieldConfig,
+} from '../components/GenericFilterDopdown';
 
 export interface LoanFilterState {
-  status: string;
+  // Lista de status selecionados (seleção múltipla, via checkboxes)
+  status: string[];
   periodo: string;
   ordenacao: string;
 }
 
-export type FilterFieldType = 'select' | 'segmented';
-
-export interface FilterOption {
-  label: string;
-  value: string;
-}
-
-export interface FieldConfig<T> {
-  key: keyof T;
-  label: string;
-  type: FilterFieldType;
-  options: FilterOption[];
-}
+// Por padrão mostramos apenas o que ainda está em aberto
+const DEFAULT_STATUSES = ['pendente', 'atrasado'];
 
 const LOAN_FILTER_FIELDS: FieldConfig<LoanFilterState>[] = [
   {
     key: 'status',
     label: 'Status do Empréstimo',
-    type: 'segmented',
+    type: 'checkbox-group',
+    defaultValues: DEFAULT_STATUSES,
     options: [
-      { label: 'Todos', value: 'todos' },
-      { label: 'Em Dia', value: 'em_dia' },
-      { label: 'Atrasados', value: 'atrasado' },
+      { label: 'Pendente', value: 'pendente' },
+      { label: 'Atrasado', value: 'atrasado' },
+      { label: 'Devolvido', value: 'devolvido' },
     ],
   },
   {
@@ -69,7 +62,7 @@ export default function BookLendingPage() {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<LoanFilterState>({
-    status: 'todos',
+    status: DEFAULT_STATUSES,
     periodo: 'todos',
     ordenacao: 'prazo_asc',
   });
@@ -112,8 +105,12 @@ export default function BookLendingPage() {
 
     return loans
       .filter((item) => {
-        if (filters.status === 'em_dia' && item.status.toLowerCase() !== 'em dia') return false;
-        if (filters.status === 'atrasado' && item.status.toLowerCase() !== 'atrasado') return false;
+        // Filtro de status com seleção múltipla; lista vazia = todos
+        const selectedStatuses =
+          filters.status.length > 0 ? filters.status : DEFAULT_STATUSES;
+        const itemStatus = item.status.toLowerCase().trim();
+
+        if (selectedStatuses.length > 0 && !selectedStatuses.includes(itemStatus)) return false;
 
         if (filters.periodo !== 'todos') {
           const itemDate = parseDueDate(item.dueDate);

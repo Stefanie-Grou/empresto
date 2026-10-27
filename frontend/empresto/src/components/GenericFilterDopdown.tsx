@@ -5,13 +5,23 @@ export interface FilterOption {
   value: string;
 }
 
-export type FilterFieldType = 'select' | 'segmented';
+export type FilterFieldType = 'select' | 'segmented' | 'checkbox-group';
 
 export interface FieldConfig<T> {
   key: keyof T;
   label: string;
   type: FilterFieldType;
   options: FilterOption[];
+  /** Para 'checkbox-group': valores que vêm marcados quando o filtro ainda não foi alterado */
+  defaultValues?: string[];
+}
+
+export function toValueList(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String);
+  if (typeof value === 'string' && value.trim()) {
+    return value.split(',').map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
 }
 
 interface GenericFilterProps<T> {
@@ -33,11 +43,22 @@ export default function GenericFilterDropdown<T>({
 }: GenericFilterProps<T>) {
   if (!isOpen) return null;
 
-  const handleFieldChange = (key: keyof T, value: string) => {
+  const handleFieldChange = (key: keyof T, value: string | string[]) => {
     onChange({
       ...filterState,
       [key]: value,
     });
+  };
+
+  const toggleListValue = (field: FieldConfig<T>, value: string, isChecked: boolean) => {
+    const current = toValueList(filterState[field.key]);
+    const base = current.length > 0 ? current : field.defaultValues || [];
+
+    const next = isChecked
+      ? Array.from(new Set([...base, value]))
+      : base.filter((item) => item !== value);
+
+    handleFieldChange(field.key, next);
   };
 
   return (
@@ -112,6 +133,40 @@ export default function GenericFilterDropdown<T>({
                     })}
                   </div>
                 )}
+
+                {/* Checkbox Group (seleção múltipla) */}
+                {field.type === 'checkbox-group' && (() => {
+                  const rawValue = filterState[field.key];
+                  const hasOwnValue = toValueList(rawValue).length > 0;
+                  const selected = hasOwnValue ? toValueList(rawValue) : field.defaultValues || [];
+
+                  return (
+                    <div className="flex flex-wrap bg-gray-100 p-1 rounded-2xl gap-1">
+                      {field.options.map((opt) => {
+                        const isSelected = selected.includes(opt.value);
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            aria-pressed={isSelected}
+                            onClick={() => toggleListValue(field, opt.value, !isSelected)}
+                            className={`flex-1 min-w-[72px] py-1.5 text-xs font-medium rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                              isSelected
+                                ? 'bg-white text-gray-900 shadow-xs'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                          >
+                            <Icon
+                              icon={isSelected ? 'lucide:check' : 'lucide:plus'}
+                              className="w-3 h-3 shrink-0"
+                            />
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}
