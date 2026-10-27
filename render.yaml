@@ -18,8 +18,9 @@ services:
       - key: EMAIL_PASS
         sync: false
 
-  - type: static
+  - type: web
     name: empresto-frontend
+    runtime: static
     rootDir: frontend/empresto
     buildCommand: npm install && npm run build
     staticPublishPath: dist
