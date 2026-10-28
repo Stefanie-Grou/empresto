@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import BaseModal from './BaseModal';
 import { TextInput } from '../FormInput';
 import BookSearchInput from '../BookSearchInput';
+import ClassSelect from '../ClassSelect';
 import type { BookOption } from '../../interfaces/BookOption';
 
 export interface CreateLoanFormData {
@@ -115,13 +116,14 @@ export default function CreateLoanModal({
 
       <div className="grid grid-cols-12 gap-3 items-center">
         <div className="col-span-7">
-          <TextInput
-            label="Turma"
-            value={formData.studentClass}
-            onChange={(e) => handleInputChange('studentClass', e.target.value)}
-            placeholder={formData.personType === 'Aluno' ? 'Ex: 9º Ano A' : '-'}
-            required={formData.personType === 'Aluno'}
-          />
+          <div className="flex items-center justify-between gap-4">
+            <label className="text-sm font-semibold text-gray-800 shrink-0">Turma</label>
+            <ClassSelect
+              value={formData.studentClass}
+              onChange={(value) => handleInputChange('studentClass', value)}
+              disabled={formData.personType !== 'Aluno'}
+            />
+          </div>
         </div>
         <div className="col-span-5">
           <TextInput
