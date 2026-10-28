@@ -1,13 +1,29 @@
-const env = (import.meta as any).env || {};
-const rawApiUrl = env.VITE_API_URL as string | undefined;
+function getApiBaseUrl(): string {
+  const env = (import.meta as any).env || {};
+  let url = (env.VITE_API_URL as string | undefined)?.trim();
 
-export const API_BASE_URL = rawApiUrl
-  ? (rawApiUrl.startsWith('http')
-      ? (rawApiUrl.endsWith('/api/v1')
-          ? rawApiUrl
-          : `${rawApiUrl.replace(/\/$/, '')}/api/v1`)
-      : `https://${rawApiUrl.replace(/\/$/, '')}/api/v1`)
-  : 'http://localhost:8080/api/v1';
+  if (typeof window !== 'undefined' && window.location.hostname.includes('onrender.com')) {
+    if (!url || !url.includes('.')) {
+      return 'https://empresto-backend.onrender.com/api/v1';
+    }
+  }
+
+  if (!url) {
+    return 'http://localhost:8080/api/v1';
+  }
+
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    if (!url.includes('.') && !url.includes('localhost')) {
+      url = `${url}.onrender.com`;
+    }
+    url = `https://${url}`;
+  }
+
+  const clean = url.replace(/\/+$/, '');
+  return clean.endsWith('/api/v1') ? clean : `${clean}/api/v1`;
+}
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const ENDPOINTS = {
   LOANS: `${API_BASE_URL}/emprestimos`,
