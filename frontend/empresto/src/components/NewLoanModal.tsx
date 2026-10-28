@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { Icon } from '@iconify/react';
 import Toast, { type ToastType } from './Toast';
 import { ENDPOINTS } from '../services/apiConfig';
+import BookSearchInput from './BookSearchInput';
+import type { BookOption as SearchBookOption } from '../interfaces/BookOption';
 
 interface BookOption {
   id: number;
@@ -61,6 +63,7 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
   const [toast, setToast] = useState<ToastState | null>(null);
 
   const [livroId, setLivroId] = useState<string>('');
+  const [selectedBook, setSelectedBook] = useState<SearchBookOption | null>(null);
   const [nomePessoa, setNomePessoa] = useState<string>('');
   const [selectedGrade, setSelectedGrade] = useState<string>('');
   const [selectedLetter, setSelectedLetter] = useState<string>('');
@@ -82,6 +85,7 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
     setPrazoDevolucao(dateFormatted);
 
     setLivroId('');
+    setSelectedBook(null);
     setNomePessoa('');
     setSelectedGrade('');
     setSelectedLetter('');
@@ -145,8 +149,11 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
       return false;
     }
 
-    const selectedBook = books.find((b) => String(b.id) === String(livroId));
-    if (selectedBook && selectedBook.quantidadeDisponivel <= 0) {
+    const disponibilidade = selectedBook
+      ? (selectedBook.available ?? 1)
+      : (books.find((b) => String(b.id) === String(livroId))?.quantidadeDisponivel ?? 1);
+
+    if (disponibilidade <= 0) {
       setToast({
         id: Date.now(),
         type: 'warning',
@@ -277,30 +284,20 @@ export default function NewLoanModal({ isOpen, onClose, onLoanCreated }: NewLoan
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 font-sans text-sm">
           <div className="flex items-center gap-4">
-            <label htmlFor="livroSelect" className="text-gray-700 font-medium w-24 shrink-0">
+            <label className="text-gray-700 font-medium w-24 shrink-0">
               Livro
             </label>
             <div className="flex-1">
-              <select
-                id="livroSelect"
-                value={livroId}
-                onChange={(e) => setLivroId(e.target.value)}
-                disabled={isLoadingData || isSubmitting}
-                className="w-full bg-[#f0f2f5] text-gray-800 rounded-xl px-4 py-2.5 border border-transparent focus:border-main-background-green focus:bg-white focus:outline-none transition-all cursor-pointer"
-              >
-                <option value="">
-                  {isLoadingData ? 'Carregando acervo...' : 'Selecione o livro...'}
-                </option>
-                {books.map((b) => (
-                  <option
-                    key={b.id}
-                    value={b.id}
-                    disabled={b.quantidadeDisponivel <= 0}
-                  >
-                    {b.titulo} - {b.autor} ({b.quantidadeDisponivel} {b.quantidadeDisponivel === 1 ? 'disponível' : 'disponíveis'})
-                  </option>
-                ))}
-              </select>
+              <BookSearchInput
+                label=""
+                placeholder={isLoadingData ? 'Carregando acervo...' : 'Digite o título do livro...'}
+                disabled={isSubmitting}
+                onSelect={(book) => {
+                  setSelectedBook(book);
+                  setLivroId(book ? String(book.id) : '');
+                }}
+                required
+              />
             </div>
           </div>
 

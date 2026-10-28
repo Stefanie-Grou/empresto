@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import type { LentItem } from '../../interfaces/LentItem';
 import BaseModal from './BaseModal';
 import { TextInput } from '../FormInput';
-import BookSearchInput from '../BookSearchInput';
 
 interface LoanModalProps {
   isOpen: boolean;
@@ -15,6 +14,31 @@ interface LoanModalProps {
   isReadOnly?: boolean;
   warningMessage?: string;
   submitLabel?: string;
+}
+
+// Campos que o formulário realmente permite alterar
+function toEditableValues(item: LentItem) {
+  return {
+    studentName: (item.studentName || '').trim(),
+    personType: (item.personType || '').trim(),
+    studentClass: (item.studentClass || '').trim(),
+    dueDate: (item.dueDate || '').trim(),
+    status: (item.status || '').trim(),
+  };
+}
+
+// O livro não é editável neste modal, então nem entra na comparação
+function hasChanges(current: LentItem, original: LentItem): boolean {
+  const a = toEditableValues(current);
+  const b = toEditableValues(original);
+
+  return (
+    a.studentName !== b.studentName ||
+    a.personType !== b.personType ||
+    a.studentClass !== b.studentClass ||
+    a.dueDate !== b.dueDate ||
+    a.status !== b.status
+  );
 }
 
 function isPastDue(dateStr: string): boolean {
@@ -37,9 +61,13 @@ function isPastDue(dateStr: string): boolean {
   } else {
     return false;
   }
+
   due.setHours(23, 59, 59, 999);
   return new Date() > due;
 }
+
+const STATUS_ERROR_MESSAGE =
+  'Não é possível definir como Atrasado pois o prazo de devolução ainda não venceu.';
 
 export default function LoanModal({
   isOpen,
@@ -54,18 +82,21 @@ export default function LoanModal({
   submitLabel = 'Salvar',
 }: LoanModalProps) {
   const [formData, setFormData] = useState<LentItem | null>(null);
+  // Guarda o empréstimo original para detectar se houve alteração
+  const [originalLoan, setOriginalLoan] = useState<LentItem | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (loan) {
       setFormData({ ...loan });
+      setOriginalLoan({ ...loan });
     }
     setErrorMessage(null);
   }, [loan, isOpen]);
 
   if (!loan || !formData) return null;
 
-  const handleInputChange = (field: keyof LentItem, value: any) => {
+  const handleInputChange = (field: keyof LentItem, value: string) => {
     setErrorMessage(null);
     setFormData((prev) => (prev ? { ...prev, [field]: value } : null));
   };
@@ -73,27 +104,40 @@ export default function LoanModal({
   const handleStatusChange = (newStatus: string) => {
     setErrorMessage(null);
     if (newStatus === 'Atrasado' && !isPastDue(formData.dueDate)) {
-      setErrorMessage('Não é possível definir como Atrasado pois o prazo de devolução ainda não venceu.');
+      setErrorMessage(STATUS_ERROR_MESSAGE);
       return;
     }
     setFormData((prev) => (prev ? { ...prev, status: newStatus } : null));
   };
 
   const isAtrasado = formData.status.toLowerCase() === 'atrasado';
+
+  const isDirty = originalLoan ? hasChanges(formData, originalLoan) : false;
+
   const shouldShowSubmitButton = Boolean(warningMessage) || !isReadOnly || submitLabel === 'Devolver';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isReadOnly && formData.status === 'Atrasado' && !isPastDue(formData.dueDate)) {
-      setErrorMessage('Não é possível definir como Atrasado pois o prazo de devolução ainda não venceu.');
+
+    // Devolução não depende de alterações no formulário
+    if (submitLabel === 'Devolver' && onReturn) {
+      onReturn(formData);
       return;
     }
 
-    if (submitLabel === 'Devolver' && onReturn) {
-      onReturn(formData);
-    } else {
-      onSave(formData);
+    // Validação do status (mesma regra do select)
+    if (!isReadOnly && formData.status === 'Atrasado' && !isPastDue(formData.dueDate)) {
+      setErrorMessage(STATUS_ERROR_MESSAGE);
+      return;
     }
+
+    // Nada mudou: fecha o modal sem chamar o endpoint
+    if (!isDirty) {
+      onClose();
+      return;
+    }
+
+    onSave(formData);
   };
 
   return (
@@ -159,6 +203,19 @@ export default function LoanModal({
             readOnly={isReadOnly}
           />
         </div>
+      </div>
+
+      <div className="grid grid-cols-12 gap-3 items-center">
+        <div className="col-span-7">
+          {/* O livro não é editável: para trocar, exclua e registre um novo empréstimo */}
+          <TextInput
+            label="Livro"
+            value={formData.bookTitle}
+            onChange={() => {}}
+            disabled
+            readOnly
+          />
+        </div>
         <div className="col-span-5">
           <TextInput
             label="Prazo"
@@ -173,32 +230,14 @@ export default function LoanModal({
 
       <div className="grid grid-cols-12 gap-3 items-center">
         <div className="col-span-12">
-          {isReadOnly ? (
-            <TextInput
-              label="Livro"
-              value={formData.bookTitle}
-              onChange={(e) => handleInputChange('bookTitle', e.target.value)}
-              disabled
-              readOnly
-            />
-          ) : (
-            <BookSearchInput
-              label="Livro"
-              placeholder="Digite o título do livro..."
-              initialValue={formData.bookTitle}
-              onSelect={(book) => {
-                if (book) {
-                  setFormData((prev) => (prev ? {
-                    ...prev,
-                    bookTitle: book.bookTitle,
-                    acervoId: Number(book.id),
-                  } : null));
-                }
-              }}
-              onTextChange={(text) => handleInputChange('bookTitle', text)}
-              required
-            />
-          )}
+          {/* O livro não é editável: para trocar, exclua e registre um novo empréstimo */}
+          <TextInput
+            label="Livro"
+            value={formData.bookTitle}
+            onChange={() => {}}
+            disabled
+            readOnly
+          />
         </div>
       </div>
 

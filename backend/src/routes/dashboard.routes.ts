@@ -3,6 +3,6 @@ import { dashboardController } from '../controllers/DashboardController.js';
 
 const router = Router();
 
-router.get('/stats', (req, res) => dashboardController.getStats(req, res));
+router.get('/resumo', (req, res) => dashboardController.resumo(req, res));
 
 export default router;

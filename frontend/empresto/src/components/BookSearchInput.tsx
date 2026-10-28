@@ -12,6 +12,8 @@ interface BookSearchInputProps {
   disabled?: boolean;
   debounceMs?: number;
   initialValue?: string;
+  /** Só dispara a busca quando o usuário interage (evita request ao abrir o modal) */
+  searchOnType?: boolean;
   onSelect: (book: BookOption | null) => void;
   onTextChange?: (text: string) => void;
 }
@@ -34,16 +36,26 @@ export default function BookSearchInput({
   disabled,
   debounceMs,
   initialValue = '',
+  searchOnType = false,
   onSelect,
   onTextChange,
 }: BookSearchInputProps) {
-  const { query, setQuery, suggestions, isLoading, reset } = useBookSearch({ debounceMs });
+  const [isSearchEnabled, setIsSearchEnabled] = useState(searchOnType);
+  const { query, setQuery, suggestions, isLoading, reset } = useBookSearch({
+    debounceMs,
+    enabled: isSearchEnabled,
+  });
   const [selectedBook, setSelectedBook] = useState<BookOption | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const onTextChangeRef = useRef(onTextChange);
+  useEffect(() => {
+    onTextChangeRef.current = onTextChange;
+  }, [onTextChange]);
 
   // Mantém o texto inicial (ex.: título de um empréstimo já registrado)
   const [lastInitialValue, setLastInitialValue] = useState(initialValue);
@@ -52,9 +64,9 @@ export default function BookSearchInput({
     setQuery(initialValue);
     setSelectedBook(null);
     setIsDropdownOpen(false);
+    setIsSearchEnabled(searchOnType);
   }
 
-  const activeValue = initialValue === lastInitialValue ? query : initialValue;
   const isDropdownVisible = isDropdownOpen && !disabled && !selectedBook;
 
   // Posiciona a lista via portal, ancorada no input (não é cortada pelo modal)
@@ -108,11 +120,20 @@ export default function BookSearchInput({
     };
   }, [isDropdownVisible]);
 
+  // Valor exibido no input: o initialValue vence enquanto não houver mudança
+  const activeValue = initialValue === lastInitialValue ? query : initialValue;
+
+  // Só avisa o formulário quando o texto realmente muda. Sem isso, o reset de
+  // initialValue (ou uma edição perdida no unmount) zerava o bookTitle do form.
+  useEffect(() => {
+    onTextChangeRef.current?.(activeValue);
+  }, [activeValue]);
+
   const handleQueryChange = (value: string) => {
+    if (!isSearchEnabled) setIsSearchEnabled(true);
     setQuery(value);
     setSelectedBook(null);
     onSelect(null);
-    onTextChange?.(value);
     setIsDropdownOpen(true);
   };
 
@@ -121,15 +142,14 @@ export default function BookSearchInput({
     setQuery(book.bookTitle);
     setIsDropdownOpen(false);
     onSelect(book);
-    onTextChange?.(book.bookTitle);
   };
 
   const handleClear = () => {
+    if (!isSearchEnabled) setIsSearchEnabled(true);
     reset();
     setSelectedBook(null);
     setIsDropdownOpen(false);
     onSelect(null);
-    onTextChange?.('');
   };
 
   const dropdown = isDropdownVisible && dropdownPosition

@@ -15,3 +15,7 @@ export const ENDPOINTS = {
   DASHBOARD: `${API_BASE_URL}/dashboard`,
   AUTH: `${API_BASE_URL}/auth`,
 };
+
+export const DASHBOARD_ENDPOINTS = {
+  SUMMARY: `${API_BASE_URL}/dashboard/resumo`,
+};

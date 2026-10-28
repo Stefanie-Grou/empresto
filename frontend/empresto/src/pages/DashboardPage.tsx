@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import StatCard from "../components/Card";
@@ -9,22 +9,17 @@ import Toast from '../components/Toast';
 import NewLoanModal from '../components/NewLoanModal';
 import { MOCK_LOANS } from '../mocks/mock_loans';
 import type { LoanItem } from '../interfaces/LoanItem';
-import { API_BASE_URL, ENDPOINTS } from '../services/apiConfig';
+import { ENDPOINTS } from '../services/apiConfig';
+import {
+  dashboardService,
+  EMPTY_DASHBOARD_SUMMARY,
+  type DashboardSummary,
+} from '../services/dashboardService';
 
-interface DashboardStats {
-  acervo: {
-    totalExemplares: number;
-    totalDisponiveis: number;
-    totalTitulos: number;
-    novosEsteMes: number;
-  };
-  emprestimos: {
-    ativos: number;
-    emprestimosHoje: number;
-    devolucoesVencendoHoje: number;
-    devolucoesHoje: number;
-    atrasados: number;
-  };
+const numberFormatter = new Intl.NumberFormat('pt-BR');
+
+function formatCount(value: number): string {
+  return numberFormatter.format(Number.isFinite(value) ? value : 0);
 }
 
 export default function DashboardPage() {
@@ -32,21 +27,10 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('Login realizado com sucesso! Bem-vindo(a) ao Emprestô.');
+  const [summary, setSummary] = useState<DashboardSummary>(EMPTY_DASHBOARD_SUMMARY);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
   const [isNewLoanModalOpen, setIsNewLoanModalOpen] = useState(false);
   const [loans, setLoans] = useState<LoanItem[]>(MOCK_LOANS);
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-
-  const fetchStats = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/dashboard/stats`);
-      if (res.ok) {
-        const data = await res.json();
-        setStats(data);
-      }
-    } catch (err) {
-      console.error('Erro ao buscar estatísticas do dashboard:', err);
-    }
-  };
 
   const fetchLoans = async () => {
     try {
@@ -74,12 +58,10 @@ export default function DashboardPage() {
 
   const refreshAll = () => {
     fetchLoans();
-    fetchStats();
   };
 
   useEffect(() => {
     fetchLoans();
-    fetchStats();
   }, []);
 
   useEffect(() => {
@@ -101,10 +83,24 @@ export default function DashboardPage() {
     }
   }, [location, navigate]);
 
-  const fmt = (n: number | undefined | null): string => {
-    if (n == null) return '—';
-    return n.toLocaleString('pt-BR');
-  };
+  const loadSummary = useCallback(async () => {
+    setIsLoadingSummary(true);
+    try {
+      const data = await dashboardService.getSummary();
+      setSummary(data);
+      setIsLoadingSummary(false);
+    } catch {
+      // O toast de erro é exibido pelo dashboardService
+      setIsLoadingSummary(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSummary();
+  }, [loadSummary]);
+
+  // Placeholder enquanto os números chegam do backend
+  const displayValue = (value: number) => (isLoadingSummary ? '—' : formatCount(value));
 
   return (
     <div className="h-screen w-full overflow-y-hidden flex flex-col gap-6 p-8 bg-main-background-gray relative">
@@ -113,36 +109,29 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full shrink-0">
         <StatCard
           title="Itens no acervo"
-          subtitle="Total de itens cadastrados"
-          value={fmt(stats?.acervo.totalExemplares)}
-          statsHighlight={stats ? `+${fmt(stats.acervo.novosEsteMes)}` : '—'}
-          statsLabel="neste mês"
+          subtitle="Total de exemplares cadastrados"
+          value={displayValue(summary.exemplaresTotal)}
           icon="book-open-text"
           colorVariable="var(--color-secondary-light-green)"
         />
         <StatCard
           title="Empréstimos"
           subtitle="Total de empréstimos ativos"
-          value={fmt(stats?.emprestimos.ativos)}
-          statsHighlight={stats ? `+${fmt(stats.emprestimos.emprestimosHoje)}` : '—'}
-          statsLabel="hoje"
+          value={displayValue(summary.emprestimosAtivos)}
           icon="stamp"
           colorVariable="var(--color-soft-blue)"
         />
         <StatCard
           title="Devoluções"
           subtitle="Total de devoluções para hoje"
-          value={fmt(stats?.emprestimos.devolucoesVencendoHoje)}
-          statsHighlight={stats ? `+${fmt(stats.emprestimos.devolucoesHoje)}` : '—'}
-          statsLabel="realizadas hoje"
+          value={displayValue(summary.devolucoesHoje)}
           icon="calendar-check"
           colorVariable="var(--color-soft-yellow)"
         />
         <StatCard
           title="Em atraso"
           subtitle="Total de itens em atraso"
-          value={fmt(stats?.emprestimos.atrasados)}
-          statsHighlight={stats && stats.emprestimos.atrasados > 0 ? 'Requer atenção' : 'Em dia'}
+          value={displayValue(summary.emAtraso)}
           icon="triangle-alert"
           colorVariable="var(--color-soft-red)"
         />
