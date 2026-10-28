@@ -16,28 +16,6 @@ interface LoanModalProps {
   submitLabel?: string;
 }
 
-// Campos que o formulário realmente permite alterar (nome, turma, livro, prazo)
-function toEditableValues(item: LentItem) {
-  return {
-    studentName: (item.studentName || '').trim(),
-    studentClass: (item.studentClass || '').trim(),
-    bookTitle: (item.bookTitle || '').trim(),
-    dueDate: (item.dueDate || '').trim(),
-  };
-}
-
-function hasChanges(current: LentItem, original: LentItem): boolean {
-  const a = toEditableValues(current);
-  const b = toEditableValues(original);
-
-  return (
-    a.studentName !== b.studentName ||
-    a.studentClass !== b.studentClass ||
-    a.bookTitle !== b.bookTitle ||
-    a.dueDate !== b.dueDate
-  );
-}
-
 // Campos que o formulário realmente permite alterar
 function toEditableValues(item: LentItem) {
   return {
@@ -167,19 +145,7 @@ export default function LoanModal({
       isOpen={isOpen}
       onClose={onClose}
       title={title}
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (submitLabel === 'Devolver' && onReturn) {
-          onReturn(formData);
-          return;
-        }
-        // Nada mudou: fecha o modal sem chamar o endpoint
-        if (!isDirty) {
-          onClose();
-          return;
-        }
-        onSave(formData);
-      }}
+      onSubmit={handleSubmit}
       warningMessage={warningMessage}
       submitLabel={shouldShowSubmitButton ? submitLabel : undefined}
       extraActions={
