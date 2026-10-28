@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import BaseModal from './BaseModal';
 import { TextInput } from '../FormInput';
 import BookSearchInput from '../BookSearchInput';
+import ClassSelect from '../ClassSelect';
 import type { BookOption } from '../../interfaces/BookOption';
 
 export interface CreateReservationFormData {
@@ -105,13 +106,14 @@ export default function CreateReservationModal({
         </div>
 
         <div>
-          <TextInput
-            label="Turma"
-            value={classGroup}
-            onChange={(e) => setClassGroup(e.target.value)}
-            placeholder={personType === 'Aluno' ? 'Ex: 8º B' : '-'}
-            required={personType === 'Aluno'}
-          />
+          <div className="flex items-center justify-between gap-4">
+            <label className="text-sm font-semibold text-gray-800 shrink-0">Turma</label>
+            <ClassSelect
+              value={classGroup}
+              onChange={setClassGroup}
+              disabled={personType !== 'Aluno'}
+            />
+          </div>
         </div>
 
         <div>
