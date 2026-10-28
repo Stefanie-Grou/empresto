@@ -22,7 +22,6 @@ export const EMPTY_DASHBOARD_SUMMARY: DashboardSummary = {
   filaEspera: 0,
 };
 
-// Data de "hoje" no fuso do navegador, no formato YYYY-MM-DD
 export function getLocalISODate(date: Date = new Date()): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -31,19 +30,34 @@ export function getLocalISODate(date: Date = new Date()): string {
 }
 
 export const dashboardService = {
-  // Envia a data local do cliente (YYYY-MM-DD) para que "hoje" no banco seja
-  // o mesmo dia do usuário, e não o fuso do servidor Postgres.
   async getSummary(today: string = getLocalISODate()): Promise<DashboardSummary> {
     const url = `${DASHBOARD_ENDPOINTS.SUMMARY}?hoje=${encodeURIComponent(today)}`;
 
     try {
       const response = await fetch(url);
 
-      if (!response.ok) {
-        await throwApiError(response, 'Não foi possível carregar o resumo do dashboard.');
+      if (response.ok) {
+        return await response.json();
       }
 
-      return await response.json();
+      const fallbackUrl = DASHBOARD_ENDPOINTS.SUMMARY.replace(/\/resumo$/, '/stats');
+      const fallbackResponse = await fetch(fallbackUrl);
+
+      if (fallbackResponse.ok) {
+        const stats = await fallbackResponse.json();
+        return {
+          itensAcervo: stats.acervo?.totalTitulos ?? stats.acervo?.totalExemplares ?? 0,
+          exemplaresTotal: stats.acervo?.totalExemplares ?? 0,
+          exemplaresDisponiveis: stats.acervo?.totalDisponiveis ?? 0,
+          emprestimosAtivos: stats.emprestimos?.ativos ?? 0,
+          devolucoesHoje: stats.emprestimos?.devolucoesVencendoHoje ?? stats.emprestimos?.devolucoesHoje ?? 0,
+          emAtraso: stats.emprestimos?.atrasados ?? 0,
+          filaEspera: 0,
+        };
+      }
+
+      await throwApiError(response, 'Não foi possível carregar o resumo do dashboard.');
+      return EMPTY_DASHBOARD_SUMMARY;
     } catch (error) {
       toast.error('Erro ao carregar resumo', errorMessage(error, 'Não foi possível carregar o resumo do dashboard.'));
       throw error;
