@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashboardPage';
 import CollectionPage from './pages/CollectionPage';
 import BookLendingPage from './pages/BookLendingPage';
 import ReservationPage from './pages/ReservationsPage';
+import ReportsPage from './pages/ReportsPage';
 import ProtectedRoute from './ProtectedRoute';
 import { isAuthenticated } from './services/session';
 
@@ -46,7 +47,7 @@ export default function App() {
             <Route path="/acervo" element={<CollectionPage />} />
             <Route path="/emprestimos" element={<BookLendingPage />} />
             <Route path="/reservas" element={<ReservationPage />} />
-            <Route path="/relatorios" element={<div>Página de Relatórios</div>} />
+            <Route path="/relatorios" element={<ReportsPage />} />
           </Route>
         </Route>
 
