@@ -108,7 +108,7 @@ export default function LoansTable({
                   <Fragment key={status}>
                     {/* Título do grupo de status */}
                     <tr className="bg-gray-50/80">
-                      <td colSpan={7} className="py-2 pl-2">
+                      <td colSpan={COLUMN_COUNT} className="py-2 pl-2">
                         <div className="inline-flex items-center gap-2">
                           <span className={`w-2 h-2 rounded-full ${statusStyle.dot}`} />
                           <span className={`text-xs font-semibold uppercase tracking-wide ${statusStyle.text}`}>
@@ -156,6 +156,10 @@ export default function LoansTable({
 
                         <td className="py-3.5 text-center text-gray-600">
                           {item.studentClass || '-'}
+                        </td>
+
+                        <td className="py-3.5 text-center text-gray-600">
+                          {item.personType || 'Aluno'}
                         </td>
 
                         <td className="py-3.5 text-center text-gray-600 font-medium">
